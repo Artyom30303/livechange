@@ -28,6 +28,7 @@
             padding: 10px;
             border: 1px solid #ddd;
             text-align: left;
+            cursor: pointer;
         }
         th {
             background-color: #6a0dad;
@@ -40,9 +41,28 @@
             height: 500px;
             margin-top: 20px;
         }
+        nav {
+            background: #6a0dad;
+            padding: 10px;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 10px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
+    <nav>
+        <a href="index.html">Дашборд</a>
+        <a href="scalping.html">Скальпинг</a>
+        <a href="intraday.html">Интрадей</a>
+        <a href="swing.html">Свинг-трейдинг</a>
+        <a href="position.html">Позиционная торговля</a>
+        <a href="spot.html">Спот</a>
+    </nav>
+    
     <h2>Крипто-Дашборд</h2>
     <input type="text" id="search" placeholder="Поиск монеты...">
     <table>
@@ -56,8 +76,6 @@
         <tbody id="crypto-table"></tbody>
     </table>
     
-    <div id="tradingview"></div>
-    
     <script>
         async function fetchCryptoData() {
             try {
@@ -68,7 +86,7 @@
                     if (coin.symbol.endsWith('USDT')) {
                         const priceChangeClass = parseFloat(coin.priceChangePercent) >= 0 ? 'green' : 'red';
                         tableHTML += `
-                            <tr onclick="loadChart('${coin.symbol}')">
+                            <tr onclick="window.location.href='coin.html?symbol=${coin.symbol}'">
                                 <td>${coin.symbol.replace('USDT', '')}</td>
                                 <td>$${parseFloat(coin.lastPrice).toFixed(2)}</td>
                                 <td class="${priceChangeClass}">${parseFloat(coin.priceChangePercent).toFixed(2)}%</td>
@@ -79,23 +97,6 @@
             } catch (error) {
                 console.error('Ошибка загрузки данных:', error);
             }
-        }
-        
-        function loadChart(symbol) {
-            document.getElementById('tradingview').innerHTML = '';
-            new TradingView.widget({
-                "container_id": "tradingview",
-                "symbol": "BINANCE:" + symbol,
-                "interval": "60",
-                "theme": "light",
-                "style": "1",
-                "locale": "ru",
-                "toolbar_bg": "#f4f4f4",
-                "enable_publishing": false,
-                "hide_side_toolbar": false,
-                "allow_symbol_change": true,
-                "autosize": true
-            });
         }
         
         document.getElementById('search').addEventListener('input', function () {

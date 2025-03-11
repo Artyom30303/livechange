@@ -95,10 +95,16 @@
                 });
                 document.getElementById('crypto-table').innerHTML = tableHTML;
                 
-                document.querySelectorAll('.coin-row').forEach(row => {
-                    row.addEventListener('click', function() {
-                        const symbol = this.getAttribute('data-symbol');
-                        window.location.href = `coin.html?symbol=${encodeURIComponent(symbol)}`;
+                document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.coin-row').forEach(row => {
+        row.addEventListener('click', function() {
+            const symbol = this.getAttribute('data-symbol');
+            if (symbol) {
+                window.location.assign(`coin.html?symbol=${encodeURIComponent(symbol)}`);
+            }
+        });
+    });
+});
                     });
                 });
             } catch (error) {

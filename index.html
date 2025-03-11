@@ -3,45 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Курс BTC</title>
+    <title>Крипто-Дашборд</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://s3.tradingview.com/tv.js"></script>
     <style>
         body {
-            background-color: #f4f4f4;
             font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
             margin: 0;
-            padding: 0;
+            padding: 20px;
         }
-        #btc-price {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            font-size: 2rem;
-            color: #6a0dad; /* Фиолетовый */
-            font-weight: bold;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 10px 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        #search {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #6a0dad;
+            color: white;
+        }
+        .green { color: green; }
+        .red { color: red; }
+        #tradingview {
+            width: 100%;
+            height: 500px;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <div id="btc-price">Загрузка данных...</div>
-
+    <h2>Крипто-Дашборд</h2>
+    <input type="text" id="search" placeholder="Поиск монеты...">
+    <table>
+        <thead>
+            <tr>
+                <th>Монета</th>
+                <th>Цена (USDT)</th>
+                <th>Изм. 24ч</th>
+            </tr>
+        </thead>
+        <tbody id="crypto-table"></tbody>
+    </table>
+    
+    <div id="tradingview"></div>
+    
     <script>
-        async function fetchBTCPrice() {
+        async function fetchCryptoData() {
             try {
-                const response = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
+                const response = await fetch('https://api.binance.com/api/v3/ticker/24hr');
                 const data = await response.json();
-                document.getElementById('btc-price').innerText = `BTC/USDT: $${parseFloat(data.price).toFixed(2)}`;
+                let tableHTML = '';
+                data.forEach(coin => {
+                    if (coin.symbol.endsWith('USDT')) {
+                        const priceChangeClass = parseFloat(coin.priceChangePercent) >= 0 ? 'green' : 'red';
+                        tableHTML += `
+                            <tr onclick="loadChart('${coin.symbol}')">
+                                <td>${coin.symbol.replace('USDT', '')}</td>
+                                <td>$${parseFloat(coin.lastPrice).toFixed(2)}</td>
+                                <td class="${priceChangeClass}">${parseFloat(coin.priceChangePercent).toFixed(2)}%</td>
+                            </tr>`;
+                    }
+                });
+                document.getElementById('crypto-table').innerHTML = tableHTML;
             } catch (error) {
-                console.error('Ошибка получения данных с Binance API:', error);
-                document.getElementById('btc-price').innerText = 'Ошибка загрузки данных';
+                console.error('Ошибка загрузки данных:', error);
             }
         }
-
-        setInterval(fetchBTCPrice, 5000);
-        window.onload = fetchBTCPrice;
+        
+        function loadChart(symbol) {
+            document.getElementById('tradingview').innerHTML = '';
+            new TradingView.widget({
+                "container_id": "tradingview",
+                "symbol": "BINANCE:" + symbol,
+                "interval": "60",
+                "theme": "light",
+                "style": "1",
+                "locale": "ru",
+                "toolbar_bg": "#f4f4f4",
+                "enable_publishing": false,
+                "hide_side_toolbar": false,
+                "allow_symbol_change": true,
+                "autosize": true
+            });
+        }
+        
+        document.getElementById('search').addEventListener('input', function () {
+            let filter = this.value.toUpperCase();
+            let rows = document.querySelectorAll('#crypto-table tr');
+            rows.forEach(row => {
+                let coinName = row.cells[0].textContent.toUpperCase();
+                row.style.display = coinName.includes(filter) ? '' : 'none';
+            });
+        });
+        
+        fetchCryptoData();
+        setInterval(fetchCryptoData, 10000);
     </script>
 </body>
 </html>

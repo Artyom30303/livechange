@@ -96,13 +96,13 @@
                 document.getElementById('crypto-table').innerHTML = tableHTML;
                 
                 document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.coin-row').forEach(row => {
-        row.addEventListener('click', function() {
-            const symbol = this.getAttribute('data-symbol');
-            if (symbol) {
-                window.location.assign(`coin.html?symbol=${encodeURIComponent(symbol)}`);
-            }
-        });
+    document.getElementById('crypto-table').addEventListener('click', function (event) {
+        let row = event.target.closest('tr');
+        if (!row) return;
+        let symbol = row.getAttribute('data-symbol');
+        if (symbol) {
+            window.location.href = `coin.html?symbol=${encodeURIComponent(symbol)}`;
+        }
     });
 });
                     });

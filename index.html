@@ -86,7 +86,7 @@
                     if (coin.symbol.endsWith('USDT')) {
                         const priceChangeClass = parseFloat(coin.priceChangePercent) >= 0 ? 'green' : 'red';
                         tableHTML += `
-                            <tr onclick="window.location.href='coin.html?symbol=${encodeURIComponent(coin.symbol)}'">
+                            <tr onclick="window.location.href='coin.html?symbol=' + encodeURIComponent('${coin.symbol}')">
                                 <td>${coin.symbol.replace('USDT', '')}</td>
                                 <td>$${parseFloat(coin.lastPrice).toFixed(2)}</td>
                                 <td class="${priceChangeClass}">${parseFloat(coin.priceChangePercent).toFixed(2)}%</td>

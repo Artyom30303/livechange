@@ -98,7 +98,7 @@
                 document.querySelectorAll('.coin-row').forEach(row => {
                     row.addEventListener('click', function() {
                         const symbol = this.getAttribute('data-symbol');
-                        window.location.href = `coin.html?symbol=${encodeURIComponent(symbol)}`;
+                        window.location.href = `./coin.html?symbol=${encodeURIComponent(symbol)}`;
                     });
                 });
             } catch (error) {

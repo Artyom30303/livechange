@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Крипто-Дашборд</title>
+    <title>Pussy Destroyer 1.0 - AI Crypto Scalper</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://s3.tradingview.com/tv.js"></script>
     <style>
@@ -51,7 +51,7 @@
             margin: 10px;
             font-weight: bold;
         }
-        #crypto-stats {
+        #crypto-stats, #ai-chat {
             margin-top: 20px;
             padding: 10px;
             background: white;
@@ -73,6 +73,7 @@
     <h2 id="crypto-title">График</h2>
     <div id="crypto-stats">Загрузка данных...</div>
     <div id="tradingview"></div>
+    <div id="ai-chat">AI Pussy Destroyer: Готов к разъёбу рынка! 🚀</div>
     
     <script>
         function formatNumber(num) {
@@ -107,6 +108,8 @@
                             <strong>Изменение 24ч:</strong> <span class="${data.priceChangePercent >= 0 ? 'green' : 'red'}">${formatNumber(data.priceChangePercent)}%</span><br>
                             <strong>Объем 24ч:</strong> ${formatNumber(data.volume)}
                         `;
+                        
+                        document.getElementById("ai-chat").innerHTML += `<br>🔥 AI Pussy Destroyer: Двигаемся к уровню ${formatNumber(data.lastPrice * 1.02)}, готовь вход!`;
                     })
                     .catch(error => {
                         document.getElementById("crypto-stats").innerHTML = "Ошибка загрузки данных";

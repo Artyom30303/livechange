@@ -51,6 +51,13 @@
             margin: 10px;
             font-weight: bold;
         }
+        #crypto-stats {
+            margin-top: 20px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -64,6 +71,7 @@
     </nav>
     
     <h2 id="crypto-title">График</h2>
+    <div id="crypto-stats">Загрузка данных...</div>
     <div id="tradingview"></div>
     
     <script>
@@ -85,6 +93,21 @@
                     "allow_symbol_change": true,
                     "autosize": true
                 });
+                
+                // Получение данных с Binance API
+                fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById("crypto-stats").innerHTML = `
+                            <strong>Текущая цена:</strong> $${parseFloat(data.lastPrice).toFixed(2)}<br>
+                            <strong>Изменение 24ч:</strong> <span class="${data.priceChangePercent >= 0 ? 'green' : 'red'}">${data.priceChangePercent}%</span><br>
+                            <strong>Объем 24ч:</strong> ${parseFloat(data.volume).toFixed(2)}
+                        `;
+                    })
+                    .catch(error => {
+                        document.getElementById("crypto-stats").innerHTML = "Ошибка загрузки данных";
+                        console.error("Ошибка загрузки данных Binance API", error);
+                    });
             }
         });
     </script>

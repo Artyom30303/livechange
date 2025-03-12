@@ -75,6 +75,10 @@
     <div id="tradingview"></div>
     
     <script>
+        function formatNumber(num) {
+            return new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(num);
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
             const urlParams = new URLSearchParams(window.location.search);
             const symbol = urlParams.get("symbol");
@@ -99,9 +103,9 @@
                     .then(response => response.json())
                     .then(data => {
                         document.getElementById("crypto-stats").innerHTML = `
-                            <strong>Текущая цена:</strong> $${parseFloat(data.lastPrice).toFixed(2)}<br>
-                            <strong>Изменение 24ч:</strong> <span class="${data.priceChangePercent >= 0 ? 'green' : 'red'}">${data.priceChangePercent}%</span><br>
-                            <strong>Объем 24ч:</strong> ${parseFloat(data.volume).toFixed(2)}
+                            <strong>Текущая цена:</strong> $${formatNumber(data.lastPrice)}<br>
+                            <strong>Изменение 24ч:</strong> <span class="${data.priceChangePercent >= 0 ? 'green' : 'red'}">${formatNumber(data.priceChangePercent)}%</span><br>
+                            <strong>Объем 24ч:</strong> ${formatNumber(data.volume)}
                         `;
                     })
                     .catch(error => {

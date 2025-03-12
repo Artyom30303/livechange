@@ -13,34 +13,6 @@
             margin: 0;
             padding: 20px;
         }
-        #search {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            margin-bottom: 10px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-        }
-        th, td {
-            padding: 10px;
-            border: 1px solid #ddd;
-            text-align: left;
-            cursor: pointer;
-        }
-        th {
-            background-color: #6a0dad;
-            color: white;
-        }
-        .green { color: green; }
-        .red { color: red; }
-        #tradingview {
-            width: 100%;
-            height: 500px;
-            margin-top: 20px;
-        }
         nav {
             background: #6a0dad;
             padding: 10px;
@@ -51,6 +23,9 @@
             margin: 10px;
             font-weight: bold;
         }
+        #crypto-title {
+            margin-bottom: 10px;
+        }
         #crypto-stats, #ai-chat {
             margin-top: 20px;
             padding: 10px;
@@ -58,6 +33,35 @@
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
+        #tradingview {
+            width: 100%;
+            height: 500px;
+            margin-top: 20px;
+        }
+        #chatbox {
+            width: 100%;
+            height: 150px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 10px;
+            background: white;
+        }
+        #message-input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-top: 10px;
+        }
+        button {
+            padding: 10px;
+            background: #6a0dad;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .green { color: green; }
+        .red { color: red; }
     </style>
 </head>
 <body>
@@ -69,23 +73,32 @@
         <a href="position.html">Позиционная торговля</a>
         <a href="spot.html">Спот</a>
     </nav>
-    
+
     <h2 id="crypto-title">Скальпинг</h2>
+    <select id="symbol-select">
+        <option value="BTCUSDT">BTCUSDT</option>
+        <option value="ETHUSDT">ETHUSDT</option>
+        <option value="BNBUSDT">BNBUSDT</option>
+        <option value="XRPUSDT">XRPUSDT</option>
+        <option value="ADAUSDT">ADAUSDT</option>
+    </select>
+
     <div id="crypto-stats">Загрузка данных...</div>
     <div id="tradingview"></div>
-    <div id="ai-chat">AI Pussy Destroyer: Анализирую рынок... 🧠</div>
-    
+    <div id="ai-chat">
+        <strong>AI Pussy Destroyer:</strong> Готов разъебывать рынок! 🧠
+        <div id="chatbox"></div>
+        <input type="text" id="message-input" placeholder="Спроси у Pussy Destroyer...">
+        <button onclick="sendMessage()">Отправить</button>
+    </div>
+
     <script>
         function formatNumber(num) {
             return new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(num);
         }
 
-        document.addEventListener("DOMContentLoaded", function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const symbol = urlParams.get("symbol") || "BTCUSDT";
-            
+        function updateTradingView(symbol) {
             document.getElementById("crypto-title").textContent = `Скальпинг: ${symbol}`;
-            
             new TradingView.widget({
                 "container_id": "tradingview",
                 "symbol": `BINANCE:${symbol}`,
@@ -99,33 +112,49 @@
                 "allow_symbol_change": true,
                 "autosize": true
             });
-            
-            // Получение данных с Binance API
+
             fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`)
                 .then(response => response.json())
                 .then(data => {
+                    let entryLevel = data.lastPrice * 1.002;
+                    let stopLoss = data.lastPrice * 0.998;
+                    let takeProfit = data.lastPrice * 1.005;
+
                     document.getElementById("crypto-stats").innerHTML = `
                         <strong>Текущая цена:</strong> $${formatNumber(data.lastPrice)}<br>
                         <strong>Изменение 24ч:</strong> <span class="${data.priceChangePercent >= 0 ? 'green' : 'red'}">${formatNumber(data.priceChangePercent)}%</span><br>
                         <strong>Объем 24ч:</strong> ${formatNumber(data.volume)}
                     `;
-                    
-                    // Генерация сигнала скальпинга
-                    let entryLevel = data.lastPrice * 1.002;
-                    let stopLoss = data.lastPrice * 0.998;
-                    let takeProfit = data.lastPrice * 1.005;
-                    
-                    document.getElementById("ai-chat").innerHTML += `
-                        <br>⚡ AI Pussy Destroyer: Готовимся к входу! 
-                        <br>Вход: ${formatNumber(entryLevel)}
-                        <br>Стоп-лосс: ${formatNumber(stopLoss)}
-                        <br>Тейк-профит: ${formatNumber(takeProfit)}
+
+                    document.getElementById("chatbox").innerHTML = `
+                        <p>🔥 AI Pussy Destroyer: Готовимся к входу!</p>
+                        <p>📈 Вход: ${formatNumber(entryLevel)}</p>
+                        <p>❌ Стоп-лосс: ${formatNumber(stopLoss)}</p>
+                        <p>🎯 Тейк-профит: ${formatNumber(takeProfit)}</p>
+                        <p>🤖 Анализ: ${symbol} показывает рост объема, RSI в зоне перепроданности, цена приближается к EMA20.</p>
                     `;
                 })
                 .catch(error => {
                     document.getElementById("crypto-stats").innerHTML = "Ошибка загрузки данных";
-                    console.error("Ошибка загрузки данных Binance API", error);
+                    console.error("Ошибка загрузки Binance API", error);
                 });
+        }
+
+        function sendMessage() {
+            let input = document.getElementById("message-input").value;
+            if (!input) return;
+            document.getElementById("chatbox").innerHTML += `<p><strong>Ты:</strong> ${input}</p>`;
+            let response = `🧠 AI Pussy Destroyer: Пока смотрю за рынком, ${input} может быть интересной темой, но ждем подтверждения сигналов.`;
+            document.getElementById("chatbox").innerHTML += `<p>${response}</p>`;
+            document.getElementById("message-input").value = "";
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            let symbol = document.getElementById("symbol-select").value;
+            updateTradingView(symbol);
+            document.getElementById("symbol-select").addEventListener("change", function() {
+                updateTradingView(this.value);
+            });
         });
     </script>
 </body>

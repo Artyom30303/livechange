@@ -86,7 +86,7 @@
                     if (coin.symbol.endsWith('USDT')) {
                         const priceChangeClass = parseFloat(coin.priceChangePercent) >= 0 ? 'green' : 'red';
                         tableHTML += `
-                            <tr onclick="window.location.href='coin.html?symbol=${coin.symbol}'">
+                            <tr class="coin-row" data-symbol="${coin.symbol}">
                                 <td>${coin.symbol.replace('USDT', '')}</td>
                                 <td>$${parseFloat(coin.lastPrice).toFixed(2)}</td>
                                 <td class="${priceChangeClass}">${parseFloat(coin.priceChangePercent).toFixed(2)}%</td>
@@ -94,9 +94,21 @@
                     }
                 });
                 document.getElementById('crypto-table').innerHTML = tableHTML;
+                attachRowClickHandlers();
             } catch (error) {
                 console.error('Ошибка загрузки данных:', error);
             }
+        }
+
+        function attachRowClickHandlers() {
+            document.querySelectorAll('.coin-row').forEach(row => {
+                row.addEventListener('click', function () {
+                    const symbol = this.getAttribute('data-symbol');
+                    if (symbol) {
+                        window.location.href = `coin.html?symbol=${encodeURIComponent(symbol)}`;
+                    }
+                });
+            });
         }
 
         document.getElementById('search').addEventListener('input', function () {

@@ -101,14 +101,11 @@
         }
 
         function attachRowClickHandlers() {
-            document.querySelectorAll('.coin-row').forEach(row => {
-                row.addEventListener('click', function () {
-                    const symbol = this.getAttribute('data-symbol');
-                    if (symbol) {
-                        window.location.href = `coin.html?symbol=${encodeURIComponent(symbol)}`;
-                    }
-                });
-            });
+            document.getElementById('crypto-table').addEventListener('click', function(event) {
+    let row = event.target.closest('tr');
+    if (!row || !row.dataset.symbol) return;
+    window.location.href = `coin.html?symbol=${encodeURIComponent(row.dataset.symbol)}`;
+});
         }
 
         document.getElementById('search').addEventListener('input', function () {

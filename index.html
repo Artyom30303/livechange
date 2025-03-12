@@ -94,19 +94,17 @@
                     }
                 });
                 document.getElementById('crypto-table').innerHTML = tableHTML;
-                attachRowClickHandlers();
             } catch (error) {
                 console.error('Ошибка загрузки данных:', error);
             }
         }
 
-        function attachRowClickHandlers() {
-            document.getElementById('crypto-table').addEventListener('click', function(event) {
-    let row = event.target.closest('tr');
-    if (!row || !row.dataset.symbol) return;
-    window.location.href = `coin.html?symbol=${encodeURIComponent(row.dataset.symbol)}`;
-});
-        }
+        document.getElementById('crypto-table').addEventListener('click', function(event) {
+            let row = event.target.closest('tr');
+            if (row && row.dataset.symbol) {
+                window.location.href = `coin.html?symbol=${encodeURIComponent(row.dataset.symbol)}`;
+            }
+        });
 
         document.getElementById('search').addEventListener('input', function () {
             let filter = this.value.toUpperCase();

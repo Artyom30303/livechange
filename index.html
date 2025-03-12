@@ -99,24 +99,26 @@
             }
         }
 
-        document.getElementById('crypto-table').addEventListener('click', function(event) {
-            let row = event.target.closest('tr');
-            if (row && row.dataset.symbol) {
-                window.location.href = `coin.html?symbol=${encodeURIComponent(row.dataset.symbol)}`;
-            }
-        });
-
-        document.getElementById('search').addEventListener('input', function () {
-            let filter = this.value.toUpperCase();
-            let rows = document.querySelectorAll('#crypto-table tr');
-            rows.forEach(row => {
-                let coinName = row.cells[0].textContent.toUpperCase();
-                row.style.display = coinName.includes(filter) ? '' : 'none';
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('crypto-table').addEventListener('click', function(event) {
+                let row = event.target.closest('tr');
+                if (row && row.dataset.symbol) {
+                    window.location.href = `coin.html?symbol=${encodeURIComponent(row.dataset.symbol)}`;
+                }
             });
-        });
 
-        fetchCryptoData();
-        setInterval(fetchCryptoData, 10000);
+            document.getElementById('search').addEventListener('input', function () {
+                let filter = this.value.toUpperCase();
+                let rows = document.querySelectorAll('#crypto-table tr');
+                rows.forEach(row => {
+                    let coinName = row.cells[0].textContent.toUpperCase();
+                    row.style.display = coinName.includes(filter) ? '' : 'none';
+                });
+            });
+
+            fetchCryptoData();
+            setInterval(fetchCryptoData, 10000);
+        });
     </script>
 </body>
 </html>

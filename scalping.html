@@ -23,20 +23,24 @@
             margin: 10px;
             font-weight: bold;
         }
-        #crypto-title {
-            margin-bottom: 10px;
+        .container {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
         }
-        #crypto-stats, #ai-chat {
-            margin-top: 20px;
-            padding: 10px;
+        #tradingview {
+            width: 50%;
+            height: 500px;
             background: white;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        #tradingview {
-            width: 100%;
-            height: 500px;
-            margin-top: 20px;
+        #analysis {
+            width: 50%;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
         #chatbox {
             width: 100%;
@@ -46,11 +50,14 @@
             padding: 10px;
             margin-top: 10px;
             background: white;
+            border-radius: 5px;
         }
         #message-input {
             width: calc(100% - 22px);
             padding: 10px;
             margin-top: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
         }
         button {
             padding: 10px;
@@ -59,6 +66,7 @@
             border: none;
             cursor: pointer;
             margin-top: 10px;
+            border-radius: 5px;
         }
         .green { color: green; }
         .red { color: red; }
@@ -82,15 +90,15 @@
         <option value="XRPUSDT">XRPUSDT</option>
         <option value="ADAUSDT">ADAUSDT</option>
     </select>
-
-    <div id="crypto-stats">Загрузка данных...</div>
-    <div id="tradingview"></div>
-    <div id="ai-chat">
-        <strong>AI Pussy Destroyer:</strong> Готов разъебывать рынок! 🧠
-        <div id="chatbox"></div>
-        <input type="text" id="message-input" placeholder="Спроси у Pussy Destroyer...">
-        <button onclick="sendMessage()">Отправить</button>
+    
+    <div class="container">
+        <div id="tradingview"></div>
+        <div id="analysis">Загрузка аналитики...</div>
     </div>
+
+    <div id="chatbox"></div>
+    <input type="text" id="message-input" placeholder="Спроси у Pussy Destroyer...">
+    <button onclick="sendMessage()">Отправить</button>
 
     <script>
         function formatNumber(num) {
@@ -120,22 +128,16 @@
                     let stopLoss = data.lastPrice * 0.998;
                     let takeProfit = data.lastPrice * 1.005;
 
-                    document.getElementById("crypto-stats").innerHTML = `
-                        <strong>Текущая цена:</strong> $${formatNumber(data.lastPrice)}<br>
-                        <strong>Изменение 24ч:</strong> <span class="${data.priceChangePercent >= 0 ? 'green' : 'red'}">${formatNumber(data.priceChangePercent)}%</span><br>
-                        <strong>Объем 24ч:</strong> ${formatNumber(data.volume)}
-                    `;
-
-                    document.getElementById("chatbox").innerHTML = `
-                        <p>🔥 AI Pussy Destroyer: Готовимся к входу!</p>
-                        <p>📈 Вход: ${formatNumber(entryLevel)}</p>
+                    document.getElementById("analysis").innerHTML = `
+                        <p>📊 Pussy Destroyer Анализ: "Братан, тут движуха!"</p>
+                        <p>📌 Вход: ${formatNumber(entryLevel)}</p>
                         <p>❌ Стоп-лосс: ${formatNumber(stopLoss)}</p>
                         <p>🎯 Тейк-профит: ${formatNumber(takeProfit)}</p>
-                        <p>🤖 Анализ: ${symbol} показывает рост объема, RSI в зоне перепроданности, цена приближается к EMA20.</p>
+                        <p>🤖 "Походу киты шарят тут — объемчики лезут вверх, RSI валяется, короче чую подъем!"</p>
                     `;
                 })
                 .catch(error => {
-                    document.getElementById("crypto-stats").innerHTML = "Ошибка загрузки данных";
+                    document.getElementById("analysis").innerHTML = "Ошибка загрузки данных";
                     console.error("Ошибка загрузки Binance API", error);
                 });
         }
@@ -144,7 +146,7 @@
             let input = document.getElementById("message-input").value;
             if (!input) return;
             document.getElementById("chatbox").innerHTML += `<p><strong>Ты:</strong> ${input}</p>`;
-            let response = `🧠 AI Pussy Destroyer: Пока смотрю за рынком, ${input} может быть интересной темой, но ждем подтверждения сигналов.`;
+            let response = `🧠 Pussy Destroyer: Братан, надо смотреть на объем! ${input} может быть топчик темой, но ждем подтверждения!`;
             document.getElementById("chatbox").innerHTML += `<p>${response}</p>`;
             document.getElementById("message-input").value = "";
         }

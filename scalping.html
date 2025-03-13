@@ -172,5 +172,66 @@
                 });
         }
     </script>
+    function analyzeMarket(symbol) {
+        console.log(`🚀 Начинаем анализ рынка для ${symbol}`);
+
+        fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=30m&limit=50`)
+            .then(res => {
+                if (!res.ok) throw new Error(`❌ Ошибка API Binance: ${res.status}`);
+                return res.json();
+            })
+            .then(candles => {
+                console.log(`✅ Данные получены для ${symbol}:`, candles);
+
+                let prices = candles.map(c => parseFloat(c[4]));
+                if (prices.length < 10) {
+                    throw new Error("⚠️ Недостаточно данных для анализа!");
+                }
+
+                let last = prices.slice(-5);
+                let lastPrice = prices[prices.length - 1];
+                let pattern = detectPattern(last);
+                let entry, stopLoss, takeProfit1, takeProfit2, takeProfit3;
+                let signalText = "Ждем нормальный сетап.";
+                let signalType = "";
+
+                if (pattern === "Флаг") {
+                    signalText = "🚀 Флаг подтвержден, заходим в лонг!";
+                    signalType = "Лонг";
+                    entry = lastPrice * 1.01;
+                    stopLoss = lastPrice * 0.98;
+                } else if (pattern === "Голова и плечи") {
+                    signalText = "📉 Голова и плечи! Готовимся к шорту!";
+                    signalType = "Шорт";
+                    entry = lastPrice * 0.99;
+                    stopLoss = lastPrice * 1.02;
+                } else {
+                    console.log("❌ Фигуры не обнаружены, анализ не дает сигнала.");
+                    signalText = "❌ Пока рынок рисует какую-то хрень, ждем нормальный сетап.";
+                }
+
+                if (entry) {
+                    takeProfit1 = entry * 1.02;
+                    takeProfit2 = entry * 1.04;
+                    takeProfit3 = entry * 1.06;
+                }
+
+                document.getElementById("analysis-content").innerHTML = `
+                    <strong>Сигнал:</strong> ${signalType} - ${signalText}<br>
+                    📍 Точка входа: <strong>${entry ? `$${entry.toFixed(2)}` : "Ждем подтверждения"}</strong><br>
+                    🛑 Стоп-лосс: <strong>${stopLoss ? `$${stopLoss.toFixed(2)}` : "-"}</strong><br>
+                    🎯 Тейк 1: <strong>${takeProfit1 ? `$${takeProfit1.toFixed(2)}` : "-"}</strong><br>
+                    🎯 Тейк 2: <strong>${takeProfit2 ? `$${takeProfit2.toFixed(2)}` : "-"}</strong><br>
+                    🎯 Тейк 3: <strong>${takeProfit3 ? `$${takeProfit3.toFixed(2)}` : "-"}</strong><br>
+                `;
+
+                console.log(`🎯 Анализ завершен: ${signalType}, ТВХ: ${entry}, SL: ${stopLoss}, TP1: ${takeProfit1}`);
+            })
+            .catch(err => {
+                console.error("❌ Ошибка анализа:", err);
+                document.getElementById("analysis-content").innerHTML = `⚠️ Ошибка загрузки данных: ${err.message}`;
+            });
+    }
+</script>
 </body>
 </html>

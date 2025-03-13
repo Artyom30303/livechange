@@ -11,7 +11,7 @@ async function fetchMarketData(symbol, interval) {
     const url = `${BINANCE_API_URL}?symbol=${symbol}&interval=${interval}&limit=100`;
     const response = await fetch(url);
     const data = await response.json();
-    return data.map(candle => ({
+    return data.map((candle) => ({
         time: candle[0],
         open: parseFloat(candle[1]),
         high: parseFloat(candle[2]),
@@ -21,23 +21,70 @@ async function fetchMarketData(symbol, interval) {
     }));
 }
 
-// === Функция для расчета индикаторов ===
-function calculateIndicators(data) {
-    return {
-        rsi: calculateRSI(data, 14),
-        macd: calculateMACD(data, 12, 26, 9),
-        bollinger: calculateBollingerBands(data, 20, 2),
-        obv: calculateOBV(data),
-        stochastic: calculateStochastic(data, 14, 3, 3)
-    };
+// === Функции для расчета индикаторов ===
+function calculateRSI(data, period) {
+    let gains = 0, losses = 0;
+    for (let i = 1; i < period; i++) {
+        let diff = data[i].close - data[i - 1].close;
+        if (diff > 0) gains += diff;
+        else losses -= diff;
+    }
+    let avgGain = gains / period;
+    let avgLoss = losses / period;
+    let rs = avgGain / avgLoss;
+    return 100 - (100 / (1 + rs));
 }
 
-// === Функция для определения зон поддержки/сопротивления ===
+function calculateMACD(data, shortPeriod, longPeriod, signalPeriod) {
+    let shortEMA = calculateEMA(data, shortPeriod);
+    let longEMA = calculateEMA(data, longPeriod);
+    let macdLine = shortEMA.map((val, i) => val - longEMA[i]);
+    let signalLine = calculateEMA(macdLine.slice(longPeriod), signalPeriod);
+    let histogram = macdLine.slice(longPeriod).map((val, i) => val - signalLine[i]);
+    return { macdLine: macdLine.slice(longPeriod), signalLine, histogram };
+}
+
+function calculateBollingerBands(data, period, stdDevMultiplier) {
+    let upperBand = [], lowerBand = [], sma = [];
+    for (let i = period - 1; i < data.length; i++) {
+        let slice = data.slice(i - period + 1, i + 1);
+        let mean = slice.reduce((acc, val) => acc + val.close, 0) / period;
+        sma.push(mean);
+        let variance = slice.reduce((acc, val) => acc + Math.pow(val.close - mean, 2), 0) / period;
+        let std = Math.sqrt(variance);
+        upperBand.push(mean + stdDevMultiplier * std);
+        lowerBand.push(mean - stdDevMultiplier * std);
+    }
+    return { middle: sma, upper: upperBand, lower: lowerBand };
+}
+
+function calculateOBV(data) {
+    let obv = [0];
+    for (let i = 1; i < data.length; i++) {
+        let direction = data[i].close > data[i - 1].close ? 1 : -1;
+        obv.push(obv[i - 1] + direction * data[i].volume);
+    }
+    return obv;
+}
+
+function calculateStochastic(data, period, k) {
+    let stochastic = [];
+    for (let i = period - 1; i < data.length; i++) {
+        let slice = data.slice(i - period + 1, i + 1);
+        let high = Math.max(...slice.map(c => c.high));
+        let low = Math.min(...slice.map(c => c.low));
+        let kValue = ((data[i].close - low) / (high - low)) * 100;
+        stochastic.push(kValue);
+    }
+    return stochastic;
+}
+
+// === Определение зон поддержки/сопротивления ===
 function detectSupportResistance(data) {
     return detectPOC(data).concat(detectLiquidityClusters(data));
 }
 
-// === Функция для поиска фигур ===
+// === Поиск паттернов ===
 function detectPatterns(data) {
     return ["Голова и плечи", "Клин", "Флаг", "Треугольник"].filter(pattern => detectPattern(data, pattern));
 }
@@ -46,51 +93,33 @@ function detectPatterns(data) {
 function generateSignal(data, indicators, supportResistance, patterns) {
     let signal = "Ожидаем нормальный сетап.";
     let arguments = [];
-    let entry, stopLoss, takeProfit;
-
+    
+    let entry, stoploss, takeProfit;
     if (patterns.includes("Голова и плечи")) {
         signal = "Шорт";
         entry = data[data.length - 1].close;
-        stopLoss = entry * 1.03;
-        takeProfit = entry * 0.95;
-        arguments.push("Обнаружена фигура 'Голова и плечи', ожидаем подтверждения!");
-    } else if (patterns.includes("Флаг")) {
-        signal = "Лонг";
-        entry = data[data.length - 1].close;
-        stopLoss = entry * 0.97;
-        takeProfit = entry * 1.05;
-        arguments.push("Флаг подтвержден, заходим в лонг!");
+        stoploss = entry * 1.02;
+        takeProfit = entry * 0.98;
     }
-    
-    if (indicators.rsi < 30) arguments.push("RSI в зоне перепроданности, возможен отскок.");
-    if (indicators.stochastic < 20) arguments.push("Стохастик в зоне перепроданности, дополнительное подтверждение.");
-
-    return { signal, entry, stopLoss, takeProfit, arguments };
+    return { signal, entry, stoploss, takeProfit, arguments };
 }
 
-// === Основной анализ рынка ===
+// === Анализ рынка ===
 async function analyzeMarket(symbol) {
-    console.log(`🔥 Начинаем анализ рынка для ${symbol}`);
-    const marketData = await fetchMarketData(symbol, "30m");
-    const indicators = calculateIndicators(marketData);
-    const supportResistance = detectSupportResistance(marketData);
-    const patterns = detectPatterns(marketData);
-    const tradingSignal = generateSignal(marketData, indicators, supportResistance, patterns);
-    
-    displaySignal(tradingSignal);
+    console.log("🔥 Начинаем анализ рынка для", symbol);
+    let data = await fetchMarketData(symbol, "1h");
+    let indicators = {
+        rsi: calculateRSI(data, 14),
+        macd: calculateMACD(data, 12, 26, 9),
+        bollinger: calculateBollingerBands(data, 20, 2),
+        obv: calculateOBV(data),
+        stochastic: calculateStochastic(data, 14, 3)
+    };
+    let supportResistance = detectSupportResistance(data);
+    let patterns = detectPatterns(data);
+    let signal = generateSignal(data, indicators, supportResistance, patterns);
+    console.log("📊 Итоговый сигнал: ", signal);
+    return signal;
 }
 
-// === Отображение сигнала ===
-function displaySignal(signalData) {
-    document.getElementById("analysis-content").innerHTML = `
-        <h3>🔥 Pump & Dump Club</h3>
-        <p><b>Сигнал:</b> ${signalData.signal}</p>
-        <p><b>Точка входа:</b> ${signalData.entry?.toFixed(2) || "-"}</p>
-        <p><b>Стоп-лосс:</b> ${signalData.stopLoss?.toFixed(2) || "-"}</p>
-        <p><b>Тейк-профит:</b> ${signalData.takeProfit?.toFixed(2) || "-"}</p>
-        <p><b>Аргументы:</b> ${signalData.arguments.join("<br>")}</p>
-    `;
-}
-
-// === Запуск анализа ===
-analyzeMarket("BTCUSDT");
+console.log("🔥 scalping.js загружен!");

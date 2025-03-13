@@ -85,6 +85,7 @@
     </nav>
     
     <h2 id="crypto-title">График</h2>
+    <input type="text" id="search" placeholder="Поиск монеты...">
     <select id="coin-selector"></select>
     <div id="crypto-stats">Загрузка данных...</div>
     <div id="tradingview"></div>
@@ -123,7 +124,17 @@
                 .then(data => {
                     let coins = data.filter(c => c.symbol.endsWith("USDT"));
                     let selector = document.getElementById("coin-selector");
-                    selector.innerHTML = coins.map(c => `<option value="${c.symbol}">${c.symbol}</option>`).join("");
+                    let search = document.getElementById("search");
+                    
+                    function updateSelector(filter) {
+                        selector.innerHTML = coins
+                            .filter(c => c.symbol.includes(filter.toUpperCase()))
+                            .map(c => `<option value="${c.symbol}">${c.symbol}</option>`)
+                            .join("");
+                    }
+                    
+                    search.addEventListener("input", () => updateSelector(search.value));
+                    updateSelector("");
                     selector.addEventListener("change", function() {
                         window.location.search = `?symbol=${this.value}`;
                     });
@@ -137,6 +148,7 @@
                         <strong>Изменение 24ч:</strong> <span class="${data.priceChangePercent >= 0 ? 'green' : 'red'}">${formatNumber(data.priceChangePercent)}%</span><br>
                         <strong>Объем 24ч:</strong> ${formatNumber(data.volume)}
                     `;
+                    document.getElementById("analysis").innerHTML = `Сигнал: ${data.priceChangePercent > 2 ? '🚀 Лонг' : '📉 Шорт'}`;
                 });
             
             document.getElementById("send-btn").addEventListener("click", function() {

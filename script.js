@@ -3,7 +3,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     const coinSelect = document.getElementById("coin-select");
     const searchCoin = document.getElementById("search-coin");
-    const selectedCoin = document.getElementById("selected-coin");
     const chartContainer = document.getElementById("chart-container");
     const signalsDiv = document.getElementById("signals");
 
@@ -47,8 +46,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     // 🔹 Загрузка графика
     function loadChart(symbol) {
         chartContainer.innerHTML = `<p class="loading-text">📉 График загружается...</p>`;
-        selectedCoin.textContent = symbol;
-
         chartContainer.innerHTML = `
             <iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:${symbol}&interval=30" 
                 width="100%" height="500px" frameborder="0"></iframe>
@@ -79,23 +76,12 @@ document.addEventListener("DOMContentLoaded", async function () {
         `;
     }
 
-    // 🔹 Инициализация
-    function loadCoins() {
-        coins.forEach(coin => {
-            let option = document.createElement("option");
-            option.value = coin;
-            option.textContent = coin;
-            coinSelect.appendChild(option);
-        });
-    }
-
     coinSelect.addEventListener("change", function () {
         let symbol = this.value;
         loadChart(symbol);
         loadSignals(symbol);
     });
 
-    loadCoins();
     loadChart("BTCUSDT");
     loadSignals("BTCUSDT");
 });

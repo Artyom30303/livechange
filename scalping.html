@@ -1,51 +1,52 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scalping</title>
-    <link rel="stylesheet" href="styles.css">  <!-- Подключаем новый CSS -->
+    <title>Скальпинг | LiveChange</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <header>
+        <nav class="navbar">
+            <ul>
+                <li><a href="index.html">Дашборд</a></li>
+                <li><a href="scalping.html" class="active">Скальпинг</a></li>
+                <li><a href="intraday.html">Интрадей</a></li>
+                <li><a href="swing.html">Свинг-трейдинг</a></li>
+                <li><a href="position.html">Позиционная торговля</a></li>
+                <li><a href="spot.html">Спот</a></li>
+            </ul>
+        </nav>
+    </header>
 
-    <!-- Верхняя навигация -->
-    <nav class="navbar">
-        <button class="nav-btn">Дашборд</button>
-        <button class="nav-btn active">Скальпинг</button>
-        <button class="nav-btn">Интрадей</button>
-        <button class="nav-btn">Свинг-трейдинг</button>
-        <button class="nav-btn">Позиционная торговля</button>
-        <button class="nav-btn">Спот</button>
-    </nav>
+    <div class="container">
+        <div class="trading-section">
+            <h2>Скальпинг: <span id="selected-coin">BTCUSDT</span></h2>
+            
+            <div class="coin-selector">
+                <input type="text" id="search-coin" placeholder="Поиск монеты...">
+                <select id="coin-select"></select>
+            </div>
 
-    <!-- Основной контейнер -->
-    <div class="main-container">
-        
-        <!-- Левая часть: График -->
-        <div class="chart-container">
-            <h2>Скальпинг: <span id="pair">BTCUSDT</span></h2>
-            <input type="text" id="search" placeholder="Поиск монеты...">
-            <select id="coinSelect"></select>
-            <div id="tradingview-widget" class="chart-frame">
-    <p style="text-align:center; padding:20px;">📈 График загружается...</p>
-</div>
+            <div id="chart-container">
+                <p class="loading-text">📉 График загружается...</p>
+            </div>
         </div>
 
-        <!-- Правая часть: Аналитика -->
-        <div class="signals">
+        <div class="signals-section">
             <h2>🔥 Pump & Dump Club</h2>
-            <div id="analysis-content">
-                ⏳ Ждём анализа рынка...
+            <div id="signals">
+                <p>⏳ Ждём анализа рынка...</p>
             </div>
         </div>
     </div>
 
-    <!-- Журнал трейдера -->
     <div class="journal">
-        <h2>📘 Журнал трейдера</h2>
+        <h3>📘 Журнал трейдера</h3>
         <p>Записи о сделках появятся здесь.</p>
     </div>
 
-    <script src="script.js"></script>  <!-- Подключаем JS -->
+    <script src="script.js"></script>
 </body>
 </html>

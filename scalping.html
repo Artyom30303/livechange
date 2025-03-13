@@ -3,42 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Скальпинг | LiveChange</title>
+    <title>Scalping - LiveChange</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <nav class="navbar">
-            <ul>
-                <li><a href="index.html">Дашборд</a></li>
-                <li><a href="scalping.html" class="active">Скальпинг</a></li>
-                <li><a href="intraday.html">Интрадей</a></li>
-                <li><a href="swing.html">Свинг-трейдинг</a></li>
-                <li><a href="position.html">Позиционная торговля</a></li>
-                <li><a href="spot.html">Спот</a></li>
-            </ul>
-        </nav>
-    </header>
+
+    <div class="navbar">
+        <button onclick="window.location.href='index.html'">Дашборд</button>
+        <button class="active">Скальпинг</button>
+        <button onclick="window.location.href='intraday.html'">Интрадей</button>
+        <button onclick="window.location.href='swing.html'">Свинг-трейдинг</button>
+        <button onclick="window.location.href='position.html'">Позиционная торговля</button>
+        <button onclick="window.location.href='spot.html'">Спот</button>
+    </div>
 
     <div class="container">
-        <div class="trading-section">
+        <div class="left-panel">
             <h2>Скальпинг: <span id="selected-coin">BTCUSDT</span></h2>
-            
-            <div class="coin-selector">
-                <input type="text" id="search-coin" placeholder="Поиск монеты...">
-                <select id="coin-select"></select>
-            </div>
+
+            <input type="text" id="search-coin" placeholder="Поиск монеты...">
+            <select id="coin-select"></select>
 
             <div id="chart-container">
                 <p class="loading-text">📉 График загружается...</p>
             </div>
         </div>
 
-        <div class="signals-section">
-            <h2>🔥 Pump & Dump Club</h2>
-            <div id="signals">
-                <p>⏳ Ждём анализа рынка...</p>
-            </div>
+        <div class="right-panel">
+            <h3>🔥 Pump & Dump Club</h3>
+            <div id="signals">⏳ Ждём анализа рынка...</div>
         </div>
     </div>
 

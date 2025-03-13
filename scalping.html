@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pussy Destroyer 2.0 - AI Crypto Scalper</title>
+    <title>Pussy Destroyer 2.0 - Scalping Terminal</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://s3.tradingview.com/tv.js"></script>
     <style>
@@ -23,32 +23,30 @@
             margin: 10px;
             font-weight: bold;
         }
-        .container {
+        #container {
             display: flex;
             gap: 20px;
         }
-        .chart-container {
-            width: 65%;
+        #tradingview {
+            width: 70%;
+            height: 500px;
         }
-        .signals-container {
+        #signals {
             width: 30%;
             background: white;
-            padding: 15px;
+            padding: 10px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        #tradingview {
+        #search, #coin-selector {
             width: 100%;
-            height: 400px;
-        }
-        .indicators {
-            margin-top: 10px;
-        }
-        #journal {
-            background: white;
             padding: 10px;
-            margin-top: 10px;
+            font-size: 16px;
+            margin-bottom: 10px;
         }
+        .bold { font-weight: bold; }
+        .red { color: red; }
+        .green { color: green; }
     </style>
 </head>
 <body>
@@ -65,63 +63,66 @@
     <input type="text" id="search" placeholder="Поиск монеты...">
     <select id="coin-selector"></select>
     
-    <div class="container">
-        <div class="chart-container">
-            <div id="tradingview"></div>
-            <div class="indicators">
-                <p>Индикаторы: RSI, MACD</p>
-            </div>
-        </div>
-        <div class="signals-container" id="signals">
-            <h3>🔥 Pump & Dump Club</h3>
-            <p>⏳ Ждем анализа рынка...</p>
-        </div>
+    <div id="container">
+        <div id="tradingview"></div>
+        <div id="signals">Загрузка аналитики...</div>
     </div>
     
     <div id="journal">📖 Журнал трейдера</div>
     
     <script>
-        $(document).ready(function() {
-            function loadChart(symbol) {
-                new TradingView.widget({
-                    "container_id": "tradingview",
-                    "symbol": "BINANCE:" + symbol,
-                    "interval": "30",
-                    "theme": "light",
-                    "style": "1",
-                    "locale": "ru",
-                    "toolbar_bg": "#f1f3f6",
-                    "enable_publishing": false,
-                    "hide_legend": false
-                });
-            }
-            
-            function analyzeMarket(symbol) {
-                $("#signals").html("<h3>🔥 Pump & Dump Club</h3><p>⏳ Анализируем рынок...</p>");
-                setTimeout(() => {
-                    $("#signals").html(`
-                        <h3>🔥 Pump & Dump Club</h3>
-                        <p><strong>Сигнал:</strong> 📉 Готовимся к шорту!</p>
-                        <ul>
-                            <li>📍 Точка входа: <strong>$1322.79</strong></li>
-                            <li>🛑 Стоп-лосс: <strong>$1836.88</strong></li>
-                            <li>🎯 Тейк 1: <strong>$1238.60</strong></li>
-                            <li>🎯 Тейк 2: <strong>$2119.70</strong></li>
-                            <li>🎯 Тейк 3: <strong>$2376.06</strong></li>
-                        </ul>
-                        <p><strong>📍 Аргументы:</strong> 🔴 Фигура "Голова и плечи" формируется, ждем подтверждения!</p>
-                    `);
-                }, 3000);
-            }
-            
-            $("#coin-selector").change(function() {
-                let symbol = $(this).val();
-                loadChart(symbol);
-                analyzeMarket(symbol);
+        function loadTradingView(symbol) {
+            new TradingView.widget({
+                "container_id": "tradingview",
+                "symbol": `BINANCE:${symbol}`,
+                "interval": "30",
+                "timezone": "Etc/UTC",
+                "theme": "light",
+                "style": "1",
+                "hide_side_toolbar": false,
+                "allow_symbol_change": true,
+                "save_image": false,
+                "studies": ["RSI@tv-basicstudies", "MACD@tv-basicstudies"],
+                "show_popup_button": true
             });
+        }
+
+        function analyzeMarket(symbol) {
+            $("#signals").html("⌛ Ждём анализа рынка...");
             
-            loadChart("BTCUSDT");
-            analyzeMarket("BTCUSDT");
+            // Имитация анализа данных
+            setTimeout(() => {
+                let entry = (Math.random() * 1000 + 1000).toFixed(2);
+                let stopLoss = (entry * 0.97).toFixed(2);
+                let take1 = (entry * 1.02).toFixed(2);
+                let take2 = (entry * 1.05).toFixed(2);
+                let take3 = (entry * 1.08).toFixed(2);
+                
+                $("#signals").html(`
+                    <h3>🔥 Pump & Dump Club</h3>
+                    <p><span class="bold">Сигнал:</span> 📉 Готовимся к шорту!</p>
+                    <ul>
+                        <li>📍 Точка входа: <span class="bold">$${entry}</span></li>
+                        <li>⛔ Стоп-лосс: <span class="bold">$${stopLoss}</span></li>
+                        <li>🎯 Тейк 1: <span class="bold">$${take1}</span></li>
+                        <li>🎯 Тейк 2: <span class="bold">$${take2}</span></li>
+                        <li>🎯 Тейк 3: <span class="bold">$${take3}</span></li>
+                    </ul>
+                    <p><span class="bold">📍 Аргументы:</span> 🟥 Фигура "Голова и плечи" формируется, ждём подтверждения!</p>
+                `);
+            }, 2000);
+        }
+
+        $(document).ready(() => {
+            let defaultSymbol = "BTCUSDT";
+            loadTradingView(defaultSymbol);
+            analyzeMarket(defaultSymbol);
+
+            $("#coin-selector").on("change", function() {
+                let newSymbol = $(this).val();
+                loadTradingView(newSymbol);
+                analyzeMarket(newSymbol);
+            });
         });
     </script>
 </body>

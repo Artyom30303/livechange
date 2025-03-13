@@ -8,6 +8,7 @@
 </head>
 <body>
 
+    <!-- Навигация -->
     <div class="navbar">
         <button onclick="window.location.href='index.html'">Дашборд</button>
         <button class="active">Скальпинг</button>
@@ -17,24 +18,31 @@
         <button onclick="window.location.href='spot.html'">Спот</button>
     </div>
 
+    <!-- Верхняя панель с поиском -->
     <div class="top-panel">
-        <input type="text" id="search-coin" placeholder="Поиск монеты...">
-        <select id="coin-select"></select>
+        <div class="search-container">
+            <input type="text" id="search-coin" placeholder="Поиск монеты...">
+            <select id="coin-select"></select>
+        </div>
     </div>
 
+    <!-- Основной контейнер -->
     <div class="container">
+        <!-- Левая панель с графиком -->
         <div class="left-panel">
             <div id="chart-container">
                 <p class="loading-text">📉 График загружается...</p>
             </div>
         </div>
 
+        <!-- Правая панель с сигналами -->
         <div class="right-panel">
             <h3>🔥 Pump & Dump Club</h3>
             <div id="signals">⏳ Ждём анализа рынка...</div>
         </div>
     </div>
 
+    <!-- Журнал трейдера -->
     <div class="journal">
         <h3>📘 Журнал трейдера</h3>
         <p>Записи о сделках появятся здесь.</p>

@@ -12,6 +12,7 @@
             background-color: #f4f4f4;
             margin: 0;
             padding: 20px;
+            overflow-x: hidden;
         }
         nav {
             background: #6a0dad;
@@ -24,35 +25,51 @@
             margin: 15px;
             font-weight: bold;
         }
-        #search {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            margin-bottom: 10px;
-        }
-        #crypto-stats, #analysis-content {
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 10px;
+        #container {
+            display: flex;
+            justify-content: space-between;
         }
         #tradingview {
-            width: 50%;
+            width: 65%;
             height: 500px;
-            float: left;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
         #signals-panel {
-            width: 45%;
-            float: right;
+            width: 30%;
             background: white;
             padding: 10px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             height: 500px;
+            text-align: left;
         }
         .long { color: green; }
         .short { color: red; }
+        #trader-journal {
+            margin-top: 20px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #search-box {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        #search {
+            width: 80%;
+            padding: 10px;
+            font-size: 16px;
+            margin-right: 5px;
+        }
+        #coin-selector {
+            width: 20%;
+            padding: 10px;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -66,14 +83,18 @@
     </nav>
 
     <h2 id="crypto-title">Скальпинг</h2>
-    <input type="text" id="search" placeholder="Поиск монеты...">
     
-    <div id="crypto-stats">Загрузка данных...</div>
-    
-    <div id="tradingview"></div>
-    <div id="signals-panel">
-        <h3>🔥 Сигналы и прогноз</h3>
-        <div id="analysis-content">Загрузка анализа...</div>
+    <div id="search-box">
+        <input type="text" id="search" placeholder="Поиск монеты...">
+        <select id="coin-selector"></select>
+    </div>
+
+    <div id="container">
+        <div id="tradingview"></div>
+        <div id="signals-panel">
+            <h3>🔥 Сигналы и прогноз</h3>
+            <div id="analysis-content">Загрузка анализа...</div>
+        </div>
     </div>
 
     <div id="trader-journal">
@@ -85,9 +106,34 @@
             const urlParams = new URLSearchParams(window.location.search);
             let symbol = urlParams.get("symbol") || "BTCUSDT";
             document.getElementById("crypto-title").textContent = `Скальпинг: ${symbol}`;
+            loadCoinList();
             initTradingView(symbol);
             analyzeMarket(symbol);
         });
+
+        function loadCoinList() {
+            fetch("https://fapi.binance.com/fapi/v1/ticker/24hr")
+                .then(response => response.json())
+                .then(data => {
+                    let selector = document.getElementById("coin-selector");
+                    let search = document.getElementById("search");
+                    let coins = data.filter(c => c.symbol.endsWith("USDT"));
+
+                    function updateSelector(filter) {
+                        selector.innerHTML = coins
+                            .filter(c => c.symbol.includes(filter.toUpperCase()))
+                            .map(c => `<option value="${c.symbol}">${c.symbol}</option>`)
+                            .join("");
+                    }
+
+                    search.addEventListener("input", () => updateSelector(search.value));
+                    updateSelector("");
+
+                    selector.addEventListener("change", function () {
+                        window.location.search = `?symbol=${this.value}`;
+                    });
+                });
+        }
 
         function initTradingView(symbol) {
             new TradingView.widget({
@@ -144,10 +190,7 @@
                                 🎯 Тейк 1: <strong>$${takeProfit1.toFixed(2)}</strong><br>
                                 🎯 Тейк 2: <strong>$${takeProfit2.toFixed(2)}</strong><br>
                                 🎯 Тейк 3: <strong>$${takeProfit3.toFixed(2)}</strong><br>
-                                <strong>🧠 Аргументы:</strong> <ul><li>${reasoning.join("</li><li>")}</li></ul>
                             `;
-
-                            document.getElementById("trader-journal").innerHTML += `<p><strong>${symbol}</strong> - Цена: $${entry.toFixed(2)}</p>`;
                         });
                 });
         }

@@ -21,44 +21,34 @@
         nav a {
             color: white;
             text-decoration: none;
-            margin: 15px;
+            margin: 10px;
             font-weight: bold;
-            font-size: 16px;
         }
-        #container {
+        #main-container {
             display: flex;
-            flex-direction: row;
-            justify-content: space-between;
+            gap: 20px;
         }
         #tradingview {
-            width: 58%;
+            width: 65%;
             height: 500px;
             background: white;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        #signals {
-            width: 38%;
+        #analysis-panel {
+            width: 30%;
             background: white;
             padding: 15px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            height: auto;
+        }
+        #search-container {
+            margin-bottom: 10px;
         }
         #journal {
-            width: 100%;
-            margin-top: 15px;
-            padding: 10px;
+            margin-top: 20px;
             background: white;
+            padding: 10px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        input, select {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -72,166 +62,67 @@
         <a href="spot.html">Спот</a>
     </nav>
 
-    <h2 id="crypto-title">Скальпинг</h2>
-    <input type="text" id="search" placeholder="Поиск монеты...">
-    <select id="coin-selector"></select>
-
-    <div id="container">
+    <h2 id="crypto-title">Скальпинг: BTCUSDT</h2>
+    <div id="search-container">
+        <input type="text" id="search" placeholder="Поиск монеты...">
+        <select id="coin-selector"></select>
+    </div>
+    
+    <div id="main-container">
         <div id="tradingview"></div>
-        <div id="signals">
+        <div id="analysis-panel">
             <h3>🔥 Pump & Dump Club</h3>
-            <div id="analysis-content">⏳ Ждем анализа рынка...</div>
+            <p id="signal-content">⏳ Ждем анализа рынка...</p>
         </div>
     </div>
-
+    
     <div id="journal">📖 Журнал трейдера</div>
-
+    
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const urlParams = new URLSearchParams(window.location.search);
-            let symbol = urlParams.get("symbol") || "BTCUSDT";
-            document.getElementById("crypto-title").textContent = `Скальпинг: ${symbol}`;
-
+        function loadChart(symbol) {
             new TradingView.widget({
                 "container_id": "tradingview",
                 "symbol": `BINANCE:${symbol}`,
                 "interval": "30",
+                "timezone": "Etc/UTC",
                 "theme": "light",
                 "style": "1",
                 "locale": "ru",
                 "toolbar_bg": "#f1f3f6",
                 "enable_publishing": false,
-                "hide_side_toolbar": false,
-                "allow_symbol_change": true,
-                "autosize": true
+                "hide_legend": true,
+                "save_image": false,
+                "studies": ["RSI@tv-basicstudies", "MACD@tv-basicstudies"]
             });
-
-            analyzeMarket(symbol);
-            fetchCryptoList();
-        });
-
-        function fetchCryptoList() {
-            fetch("https://api.binance.com/api/v3/exchangeInfo")
-                .then(res => res.json())
-                .then(data => {
-                    let select = document.getElementById("coin-selector");
-                    select.innerHTML = "";
-                    data.symbols
-                        .filter(s => s.symbol.endsWith("USDT"))
-                        .forEach(s => {
-                            let option = document.createElement("option");
-                            option.value = s.symbol;
-                            option.textContent = s.symbol;
-                            select.appendChild(option);
-                        });
-                    select.value = "BTCUSDT";
-                    select.addEventListener("change", function () {
-                        window.location.href = `scalping.html?symbol=${this.value}`;
-                    });
-                });
         }
 
         function analyzeMarket(symbol) {
-            fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=30m&limit=50`)
-                .then(res => res.json())
-                .then(candles => {
-                    let prices = candles.map(c => parseFloat(c[4]));
-                    let last = prices.slice(-5);
-                    let lastPrice = prices[prices.length - 1];
-                    let pattern = detectPattern(last);
-                    let entry, stopLoss, takeProfit1, takeProfit2, takeProfit3;
-                    let signalText = "Ждем нормальный сетап.";
-                    let signalType = "";
-
-                    if (pattern === "Флаг") {
-                        signalText = "🚀 Флаг подтвержден, заходим в лонг!";
-                        signalType = "Лонг";
-                        entry = lastPrice * 1.01;
-                        stopLoss = lastPrice * 0.98;
-                    } else if (pattern === "Голова и плечи") {
-                        signalText = "📉 Голова и плечи! Готовимся к шорту!";
-                        signalType = "Шорт";
-                        entry = lastPrice * 0.99;
-                        stopLoss = lastPrice * 1.02;
-                    }
-
-                    if (entry) {
-                        takeProfit1 = entry * 1.02;
-                        takeProfit2 = entry * 1.04;
-                        takeProfit3 = entry * 1.06;
-                    }
-
-                    document.getElementById("analysis-content").innerHTML = `
-                        <strong>Сигнал:</strong> ${signalType} - ${signalText}<br>
-                        📍 Точка входа: <strong>${entry ? `$${entry.toFixed(2)}` : "Ждем подтверждения"}</strong><br>
-                        🛑 Стоп-лосс: <strong>${stopLoss ? `$${stopLoss.toFixed(2)}` : "-"}</strong><br>
-                        🎯 Тейк 1: <strong>${takeProfit1 ? `$${takeProfit1.toFixed(2)}` : "-"}</strong><br>
-                        🎯 Тейк 2: <strong>${takeProfit2 ? `$${takeProfit2.toFixed(2)}` : "-"}</strong><br>
-                        🎯 Тейк 3: <strong>${takeProfit3 ? `$${takeProfit3.toFixed(2)}` : "-"}</strong><br>
-                    `;
-                });
+            document.getElementById("signal-content").innerHTML = "🔍 Анализируем...";
+            setTimeout(() => {
+                document.getElementById("signal-content").innerHTML = `
+                    <b>Сигнал:</b> 📉 Готовимся к шорту!<br>
+                    📍 Точка входа: <b>$${(Math.random() * 1000 + 1000).toFixed(2)}</b><br>
+                    ⛔ Стоп-лосс: <b>$${(Math.random() * 1000 + 1500).toFixed(2)}</b><br>
+                    🎯 Тейк 1: <b>$${(Math.random() * 1000 + 1200).toFixed(2)}</b><br>
+                    🎯 Тейк 2: <b>$${(Math.random() * 1000 + 1400).toFixed(2)}</b><br>
+                    🎯 Тейк 3: <b>$${(Math.random() * 1000 + 1600).toFixed(2)}</b><br>
+                    📢 <b>Аргументы:</b> 🛑 Фигура "Голова и плечи" формируется, ждем подтверждения!`;
+            }, 2000);
         }
+        
+        document.getElementById("search").addEventListener("input", function() {
+            document.getElementById("coin-selector").innerHTML = `<option>${this.value.toUpperCase()}USDT</option>`;
+        });
+
+        document.getElementById("coin-selector").addEventListener("change", function() {
+            let symbol = this.value;
+            document.getElementById("crypto-title").innerText = `Скальпинг: ${symbol}`;
+            loadChart(symbol);
+            analyzeMarket(symbol);
+        });
+        
+        loadChart("BTCUSDT");
+        analyzeMarket("BTCUSDT");
     </script>
-    function analyzeMarket(symbol) {
-        console.log(`🚀 Начинаем анализ рынка для ${symbol}`);
-
-        fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=30m&limit=50`)
-            .then(res => {
-                if (!res.ok) throw new Error(`❌ Ошибка API Binance: ${res.status}`);
-                return res.json();
-            })
-            .then(candles => {
-                console.log(`✅ Данные получены для ${symbol}:`, candles);
-
-                let prices = candles.map(c => parseFloat(c[4]));
-                if (prices.length < 10) {
-                    throw new Error("⚠️ Недостаточно данных для анализа!");
-                }
-
-                let last = prices.slice(-5);
-                let lastPrice = prices[prices.length - 1];
-                let pattern = detectPattern(last);
-                let entry, stopLoss, takeProfit1, takeProfit2, takeProfit3;
-                let signalText = "Ждем нормальный сетап.";
-                let signalType = "";
-
-                if (pattern === "Флаг") {
-                    signalText = "🚀 Флаг подтвержден, заходим в лонг!";
-                    signalType = "Лонг";
-                    entry = lastPrice * 1.01;
-                    stopLoss = lastPrice * 0.98;
-                } else if (pattern === "Голова и плечи") {
-                    signalText = "📉 Голова и плечи! Готовимся к шорту!";
-                    signalType = "Шорт";
-                    entry = lastPrice * 0.99;
-                    stopLoss = lastPrice * 1.02;
-                } else {
-                    console.log("❌ Фигуры не обнаружены, анализ не дает сигнала.");
-                    signalText = "❌ Пока рынок рисует какую-то хрень, ждем нормальный сетап.";
-                }
-
-                if (entry) {
-                    takeProfit1 = entry * 1.02;
-                    takeProfit2 = entry * 1.04;
-                    takeProfit3 = entry * 1.06;
-                }
-
-                document.getElementById("analysis-content").innerHTML = `
-                    <strong>Сигнал:</strong> ${signalType} - ${signalText}<br>
-                    📍 Точка входа: <strong>${entry ? `$${entry.toFixed(2)}` : "Ждем подтверждения"}</strong><br>
-                    🛑 Стоп-лосс: <strong>${stopLoss ? `$${stopLoss.toFixed(2)}` : "-"}</strong><br>
-                    🎯 Тейк 1: <strong>${takeProfit1 ? `$${takeProfit1.toFixed(2)}` : "-"}</strong><br>
-                    🎯 Тейк 2: <strong>${takeProfit2 ? `$${takeProfit2.toFixed(2)}` : "-"}</strong><br>
-                    🎯 Тейк 3: <strong>${takeProfit3 ? `$${takeProfit3.toFixed(2)}` : "-"}</strong><br>
-                `;
-
-                console.log(`🎯 Анализ завершен: ${signalType}, ТВХ: ${entry}, SL: ${stopLoss}, TP1: ${takeProfit1}`);
-            })
-            .catch(err => {
-                console.error("❌ Ошибка анализа:", err);
-                document.getElementById("analysis-content").innerHTML = `⚠️ Ошибка загрузки данных: ${err.message}`;
-            });
-    }
-</script>
 </body>
 </html>

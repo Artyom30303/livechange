@@ -90,7 +90,6 @@
                         <strong>Объем 24ч:</strong> ${formatNumber(volume)}
                     `;
 
-                    // Записываем в журнал трейдера
                     logTrade(symbol, lastPrice, changePercent);
                 }).catch(err => console.error("Ошибка загрузки данных:", err));
         }
@@ -100,19 +99,39 @@
             document.getElementById("trader-journal").innerHTML += logEntry;
         }
 
+        function waitForTradingView(callback, timeout = 5000) {
+            const startTime = Date.now();
+            function check() {
+                if (typeof TradingView !== "undefined") {
+                    callback();
+                } else if (Date.now() - startTime < timeout) {
+                    setTimeout(check, 100);
+                } else {
+                    console.error("Ошибка: TradingView API не загрузился.");
+                }
+            }
+            check();
+        }
+
         function initTradingView(symbol) {
-            new TradingView.widget({
-                container_id: "tradingview",
-                symbol: `BINANCE:${symbol}`,
-                interval: "5",
-                theme: "light",
-                style: "1",
-                locale: "ru",
-                toolbar_bg: "#f1f3f6",
-                enable_publishing: false,
-                hide_side_toolbar: false,
-                allow_symbol_change: true,
-                autosize: true
+            waitForTradingView(() => {
+                try {
+                    new TradingView.widget({
+                        container_id: "tradingview",
+                        symbol: `BINANCE:${symbol}`,
+                        interval: "5",
+                        theme: "light",
+                        style: "1",
+                        locale: "ru",
+                        toolbar_bg: "#f1f3f6",
+                        enable_publishing: false,
+                        hide_side_toolbar: false,
+                        allow_symbol_change: true,
+                        autosize: true
+                    });
+                } catch (error) {
+                    console.error("Ошибка инициализации TradingView:", error);
+                }
             });
         }
 

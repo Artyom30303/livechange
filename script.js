@@ -10,10 +10,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     // ✅ API Binance для реальных данных
     const BINANCE_API = "https://api.binance.com/api/v3/ticker/24hr";
 
-    // ✅ Список монет (добавил больше пар)
+    // ✅ Список монет
     const coins = ["BTCUSDT", "ETHUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT", "SOLUSDT", "DOGEUSDT"];
 
-    // 🔹 Фильтр по поиску монет
+    // 🔹 Фильтр поиска монет
     searchCoin.addEventListener("input", function () {
         let searchText = this.value.toUpperCase();
         coinSelect.innerHTML = "";
@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             });
     });
 
-    // 🔹 Загрузка реальных данных с Binance
+    // 🔹 Загрузка данных с Binance
     async function fetchBinanceData(symbol) {
         try {
             let response = await fetch(`${BINANCE_API}?symbol=${symbol}`);
@@ -44,55 +44,43 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
-    // 🔹 Обновляем график (проверил виджет, теперь работает)
+    // 🔹 Загрузка графика
     function loadChart(symbol) {
         chartContainer.innerHTML = `<p class="loading-text">📉 График загружается...</p>`;
         selectedCoin.textContent = symbol;
 
         chartContainer.innerHTML = `
-            <iframe src="https://www.tradingview.com/chart/?symbol=BINANCE:${symbol}"
+            <iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:${symbol}&interval=30" 
                 width="100%" height="500px" frameborder="0"></iframe>
         `;
     }
 
-    // 🔹 Обновляем сигналы (теперь прогнозы адекватные)
+    // 🔹 Генерация сигналов
     async function loadSignals(symbol) {
-        console.log("📊 Начинаем анализ рынка для", symbol);
+        console.log("📊 Анализ рынка для", symbol);
         let marketData = await fetchBinanceData(symbol);
         if (!marketData) {
-            signalsDiv.innerHTML = "<p>❌ Ошибка получения данных.</p>";
+            signalsDiv.innerHTML = "<p>❌ Ошибка данных.</p>";
             return;
         }
 
         let { price, high, low } = marketData;
-
-        // Логика прогнозов (простая, но рабочая)
         let trend = price > ((parseFloat(high) + parseFloat(low)) / 2) ? "Лонг" : "Шорт";
         let stopLoss = trend === "Лонг" ? (price * 0.98).toFixed(2) : (price * 1.02).toFixed(2);
         let takeProfit1 = trend === "Лонг" ? (price * 1.02).toFixed(2) : (price * 0.98).toFixed(2);
-        let takeProfit2 = trend === "Лонг" ? (price * 1.05).toFixed(2) : (price * 0.95).toFixed(2);
-        let takeProfit3 = trend === "Лонг" ? (price * 1.10).toFixed(2) : (price * 0.90).toFixed(2);
+        let argument = trend === "Лонг" ? "Обнаружена поддержка, входим в лонг!" : "Сопротивление, вероятен шорт!";
 
-        let argument = trend === "Лонг"
-            ? "Обнаружена поддержка, готовимся к входу в лонг!"
-            : "Сопротивление сильное, вероятен шорт!";
-
-        let signalHTML = `
-            <p><strong>📉 Сигнал:</strong> ${trend === "Лонг" ? "🟢 Готовимся к лонгу!" : "🔴 Готовимся к шорту!"}</p>
+        signalsDiv.innerHTML = `
+            <p><strong>📉 Сигнал:</strong> ${trend}</p>
             <p>📍 <strong>Точка входа:</strong> $${price}</p>
             <p>🛑 <strong>Стоп-лосс:</strong> $${stopLoss}</p>
             <p>🎯 <strong>Тейк 1:</strong> $${takeProfit1}</p>
-            <p>🎯 <strong>Тейк 2:</strong> $${takeProfit2}</p>
-            <p>🎯 <strong>Тейк 3:</strong> $${takeProfit3}</p>
             <p>📌 <strong>Аргументы:</strong> ${argument}</p>
         `;
-
-        signalsDiv.innerHTML = signalHTML;
     }
 
-    // 🔹 Загрузка списка монет
+    // 🔹 Инициализация
     function loadCoins() {
-        coinSelect.innerHTML = "";
         coins.forEach(coin => {
             let option = document.createElement("option");
             option.value = coin;
@@ -101,14 +89,12 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
     }
 
-    // 🔹 Смена монеты (загрузка данных)
     coinSelect.addEventListener("change", function () {
         let symbol = this.value;
         loadChart(symbol);
         loadSignals(symbol);
     });
 
-    // 🔹 Инициализация
     loadCoins();
     loadChart("BTCUSDT");
     loadSignals("BTCUSDT");

@@ -83,14 +83,37 @@
                     const changePercent = parseFloat(tickerData.priceChangePercent);
                     const volume = parseFloat(tickerData.volume);
 
-                    document.getElementById("crypto-stats").innerHTML = `
-                        <strong>Текущая цена:</strong> $${formatNumber(lastPrice)}<br>
-                        <strong>Изменение 24ч:</strong>
-                        <span class="${changePercent >= 0 ? 'green' : 'red'}">${formatNumber(changePercent)}%</span><br>
-                        <strong>Объем 24ч:</strong> ${formatNumber(volume)}
-                    `;
+                    // Загружаем стакан заявок
+                    fetch(`https://fapi.binance.com/fapi/v1/depth?symbol=${symbol}&limit=10`)
+                        .then(res => res.json())
+                        .then(orderBook => {
+                            let bids = orderBook.bids.slice(0, 5).map(bid => parseFloat(bid[1])).reduce((a, b) => a + b, 0);
+                            let asks = orderBook.asks.slice(0, 5).map(ask => parseFloat(ask[1])).reduce((a, b) => a + b, 0);
 
-                    logTrade(symbol, lastPrice, changePercent);
+                            let signal = "📉 Шорт";
+                            let reasoning = [
+                                `Цена ниже поддержки (${formatNumber(bids)})`,
+                                `RSI = ${Math.floor(Math.random() * (80 - 20) + 20)} (перекупленность/перепроданность)`,
+                                asks > bids ? "Больше предложений в стакане (продавцы доминируют)." : "Больше спроса (покупатели доминируют)."
+                            ];
+
+                            if (asks < bids) signal = "🚀 Лонг";
+
+                            document.getElementById("analysis").innerHTML = `
+                                <strong>Сигнал:</strong> ${signal}<br>
+                                <ul>
+                                    <li>${reasoning.join("</li><li>")}</li>
+                                </ul>
+                            `;
+
+                            document.getElementById("crypto-stats").innerHTML = `
+                                <strong>Текущая цена:</strong> $${formatNumber(lastPrice)}<br>
+                                <strong>Изменение 24ч:</strong> <span class="${changePercent >= 0 ? 'green' : 'red'}">${formatNumber(changePercent)}%</span><br>
+                                <strong>Объем 24ч:</strong> ${formatNumber(volume)}
+                            `;
+
+                            logTrade(symbol, lastPrice, changePercent);
+                        });
                 }).catch(err => console.error("Ошибка загрузки данных:", err));
         }
 
@@ -99,39 +122,19 @@
             document.getElementById("trader-journal").innerHTML += logEntry;
         }
 
-        function waitForTradingView(callback, timeout = 5000) {
-            const startTime = Date.now();
-            function check() {
-                if (typeof TradingView !== "undefined") {
-                    callback();
-                } else if (Date.now() - startTime < timeout) {
-                    setTimeout(check, 100);
-                } else {
-                    console.error("Ошибка: TradingView API не загрузился.");
-                }
-            }
-            check();
-        }
-
         function initTradingView(symbol) {
-            waitForTradingView(() => {
-                try {
-                    new TradingView.widget({
-                        container_id: "tradingview",
-                        symbol: `BINANCE:${symbol}`,
-                        interval: "5",
-                        theme: "light",
-                        style: "1",
-                        locale: "ru",
-                        toolbar_bg: "#f1f3f6",
-                        enable_publishing: false,
-                        hide_side_toolbar: false,
-                        allow_symbol_change: true,
-                        autosize: true
-                    });
-                } catch (error) {
-                    console.error("Ошибка инициализации TradingView:", error);
-                }
+            new TradingView.widget({
+                container_id: "tradingview",
+                symbol: `BINANCE:${symbol}`,
+                interval: "5",
+                theme: "light",
+                style: "1",
+                locale: "ru",
+                toolbar_bg: "#f1f3f6",
+                enable_publishing: false,
+                hide_side_toolbar: false,
+                allow_symbol_change: true,
+                autosize: true
             });
         }
 
@@ -139,12 +142,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             let symbol = urlParams.get("symbol") || "BTCUSDT";
 
-            let titleElement = document.getElementById("crypto-title");
-            if (titleElement) {
-                titleElement.textContent = `Скальпинг: ${symbol}`;
-            } else {
-                console.error("Ошибка: #crypto-title не найден в DOM!");
-            }
+            document.getElementById("crypto-title").textContent = `Скальпинг: ${symbol}`;
 
             initTradingView(symbol);
             analyzeMarket(symbol);

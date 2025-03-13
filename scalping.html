@@ -5,14 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pussy Destroyer 2.0 - AI Crypto Scalper</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://s3.tradingview.com/tv.js" defer></script> <!-- defer гарантирует загрузку до выполнения скриптов -->
+    <script src="https://s3.tradingview.com/tv.js" defer></script> <!-- defer гарантирует загрузку перед скриптами -->
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px; }
         nav { background: #6a0dad; padding: 10px; text-align: center; }
         nav a { color: white; text-decoration: none; margin: 10px; font-weight: bold; padding: 8px 12px; }
-        #crypto-title { font-size: 22px; font-weight: bold; margin-bottom: 10px; }
-        #crypto-stats, #analysis, #trader-journal { background: white; padding: 10px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); margin-bottom: 10px; }
+
+        #container { display: flex; justify-content: space-between; }
+        #trading-container { width: 50%; }
         #tradingview { width: 100%; height: 500px; }
+
+        #analysis-container { width: 45%; padding: 10px; background: white; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        #analysis-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+        #analysis-content { font-size: 14px; }
+        .signal-box { padding: 10px; border-radius: 5px; margin-bottom: 10px; }
+        .long { background: #e0ffe0; border-left: 5px solid green; }
+        .short { background: #ffe0e0; border-left: 5px solid red; }
+        
+        #trader-journal { background: white; padding: 10px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); margin-top: 10px; }
+        #crypto-title { font-size: 22px; font-weight: bold; margin-bottom: 10px; }
+        #crypto-stats { margin-bottom: 10px; }
         #search-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         #search { width: 70%; padding: 10px; font-size: 16px; }
         #coin-selector { width: 28%; padding: 10px; font-size: 16px; }
@@ -36,9 +48,21 @@
         <select id="coin-selector"></select>
     </div>
 
-    <div id="crypto-stats">Загрузка данных...</div>
-    <div id="tradingview"></div>
-    <div id="analysis">Анализ рынка...</div>
+    <div id="container">
+        <!-- Левая часть: График -->
+        <div id="trading-container">
+            <div id="crypto-stats">Загрузка данных...</div>
+            <div id="tradingview"></div>
+        </div>
+
+        <!-- Правая часть: Аналитика -->
+        <div id="analysis-container">
+            <div id="analysis-title">📊 Анализ рынка</div>
+            <div id="analysis-content">Загрузка анализа...</div>
+        </div>
+    </div>
+
+    <!-- Журнал трейдера -->
     <div id="trader-journal">📖 Журнал трейдера</div>
 
     <script>
@@ -91,19 +115,25 @@
                             let asks = orderBook.asks.slice(0, 5).map(ask => parseFloat(ask[1])).reduce((a, b) => a + b, 0);
 
                             let signal = "📉 Шорт";
+                            let boxClass = "short";
                             let reasoning = [
                                 `Цена ниже поддержки (${formatNumber(bids)})`,
                                 `RSI = ${Math.floor(Math.random() * (80 - 20) + 20)} (перекупленность/перепроданность)`,
                                 asks > bids ? "Больше предложений в стакане (продавцы доминируют)." : "Больше спроса (покупатели доминируют)."
                             ];
 
-                            if (asks < bids) signal = "🚀 Лонг";
+                            if (asks < bids) {
+                                signal = "🚀 Лонг";
+                                boxClass = "long";
+                            }
 
-                            document.getElementById("analysis").innerHTML = `
-                                <strong>Сигнал:</strong> ${signal}<br>
-                                <ul>
-                                    <li>${reasoning.join("</li><li>")}</li>
-                                </ul>
+                            document.getElementById("analysis-content").innerHTML = `
+                                <div class="signal-box ${boxClass}">
+                                    <strong>Сигнал:</strong> ${signal}<br>
+                                    <ul>
+                                        <li>${reasoning.join("</li><li>")}</li>
+                                    </ul>
+                                </div>
                             `;
 
                             document.getElementById("crypto-stats").innerHTML = `
@@ -123,26 +153,21 @@
         }
 
         function initTradingView(symbol) {
-            // Ждем загрузки TradingView, если он еще не загрузился
-            if (typeof TradingView === "undefined") {
-                console.warn("TradingView не загружен, ждем...");
-                setTimeout(() => initTradingView(symbol), 500);
-                return;
-            }
-
-            new TradingView.widget({
-                container_id: "tradingview",
-                symbol: `BINANCE:${symbol}`,
-                interval: "5",
-                theme: "light",
-                style: "1",
-                locale: "ru",
-                toolbar_bg: "#f1f3f6",
-                enable_publishing: false,
-                hide_side_toolbar: false,
-                allow_symbol_change: true,
-                autosize: true
-            });
+            setTimeout(() => {
+                new TradingView.widget({
+                    container_id: "tradingview",
+                    symbol: `BINANCE:${symbol}`,
+                    interval: "5",
+                    theme: "light",
+                    style: "1",
+                    locale: "ru",
+                    toolbar_bg: "#f1f3f6",
+                    enable_publishing: false,
+                    hide_side_toolbar: false,
+                    allow_symbol_change: true,
+                    autosize: true
+                });
+            }, 1000);
         }
 
         document.addEventListener("DOMContentLoaded", function () {
@@ -151,7 +176,7 @@
 
             document.getElementById("crypto-title").textContent = `Скальпинг: ${symbol}`;
 
-            setTimeout(() => initTradingView(symbol), 1000); // Ждем загрузки TradingView перед вызовом
+            initTradingView(symbol);
             analyzeMarket(symbol);
             fetchCoins();
         });

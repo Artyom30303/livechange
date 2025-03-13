@@ -13,29 +13,52 @@
             margin: 0;
             padding: 20px;
         }
-        #tradingview {
-            width: 50%;
-            height: 500px;
-            float: left;
-        }
-        #signals {
-            width: 45%;
-            float: right;
-            background: white;
-            padding: 15px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 10px;
-        }
         nav {
             background: #6a0dad;
             padding: 10px;
+            text-align: center;
         }
         nav a {
             color: white;
             text-decoration: none;
-            margin: 10px;
+            margin: 15px;
             font-weight: bold;
+            font-size: 16px;
+        }
+        #container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+        #tradingview {
+            width: 58%;
+            height: 500px;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #signals {
+            width: 38%;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            height: auto;
+        }
+        #journal {
+            width: 100%;
+            margin-top: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -52,20 +75,18 @@
     <h2 id="crypto-title">Скальпинг</h2>
     <input type="text" id="search" placeholder="Поиск монеты...">
     <select id="coin-selector"></select>
-    <div id="tradingview"></div>
 
-    <div id="signals">
-        <h3>🔥 Pump & Dump Club</h3>
-        <div id="analysis-content">⏳ Ждем анализа рынка...</div>
+    <div id="container">
+        <div id="tradingview"></div>
+        <div id="signals">
+            <h3>🔥 Pump & Dump Club</h3>
+            <div id="analysis-content">⏳ Ждем анализа рынка...</div>
+        </div>
     </div>
 
     <div id="journal">📖 Журнал трейдера</div>
 
     <script>
-        function formatNumber(num) {
-            return new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(num);
-        }
-
         document.addEventListener("DOMContentLoaded", function () {
             const urlParams = new URLSearchParams(window.location.search);
             let symbol = urlParams.get("symbol") || "BTCUSDT";
@@ -86,7 +107,29 @@
             });
 
             analyzeMarket(symbol);
+            fetchCryptoList();
         });
+
+        function fetchCryptoList() {
+            fetch("https://api.binance.com/api/v3/exchangeInfo")
+                .then(res => res.json())
+                .then(data => {
+                    let select = document.getElementById("coin-selector");
+                    select.innerHTML = "";
+                    data.symbols
+                        .filter(s => s.symbol.endsWith("USDT"))
+                        .forEach(s => {
+                            let option = document.createElement("option");
+                            option.value = s.symbol;
+                            option.textContent = s.symbol;
+                            select.appendChild(option);
+                        });
+                    select.value = "BTCUSDT";
+                    select.addEventListener("change", function () {
+                        window.location.href = `scalping.html?symbol=${this.value}`;
+                    });
+                });
+        }
 
         function analyzeMarket(symbol) {
             fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=30m&limit=50`)
@@ -96,9 +139,6 @@
                     let high = Math.max(...prices);
                     let low = Math.min(...prices);
                     let lastPrice = prices[prices.length - 1];
-
-                    let resistance = high * 0.99;
-                    let support = low * 1.01;
 
                     let pattern = detectPattern(prices);
                     let signal = "❌ Пока ждем, пусть рисует сетап.";
@@ -113,14 +153,6 @@
                             signal = "📉 Голова и плечи! Готовимся к шорту!";
                             entry = lastPrice * 0.98;
                             stopLoss = lastPrice * 1.02;
-                        } else if (pattern === "Клин") {
-                            signal = "🔪 Клин сжимается, скоро пробой!";
-                            entry = lastPrice * 1.01;
-                            stopLoss = lastPrice * 0.99;
-                        } else if (pattern === "Двойное дно") {
-                            signal = "🛑 Двойное дно! Готовимся к росту!";
-                            entry = lastPrice * 1.02;
-                            stopLoss = lastPrice * 0.98;
                         }
 
                         takeProfit1 = entry * 1.02;
@@ -144,14 +176,8 @@
 
         function detectPattern(prices) {
             let last = prices.slice(-5);
-            let max = Math.max(...last);
-            let min = Math.min(...last);
-            let mid = (max + min) / 2;
-
-            if (last[4] > last[3] && last[3] > last[2] && last[2] > last[1]) return "Флаг";
-            if (last[4] < last[3] && last[3] < last[2] && last[2] < last[1]) return "Голова и плечи";
-            if (last[4] > mid && last[3] < mid && last[2] > mid) return "Клин";
-            if (last[4] > last[3] && last[3] < last[2]) return "Двойное дно";
+            if (last[4] > last[3] && last[3] > last[2]) return "Флаг";
+            if (last[4] < last[3] && last[3] < last[2]) return "Голова и плечи";
             return null;
         }
     </script>

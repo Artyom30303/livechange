@@ -9,7 +9,14 @@
         let symbol = urlParams.get("symbol") || "BTCUSDT";
 
         function updatePageData(newSymbol) {
-            document.getElementById("crypto-title").textContent = `Скальпинг: ${newSymbol}`;
+            const titleElement = document.getElementById("crypto-title");
+
+            if (!titleElement) {
+                console.error("Ошибка: Элемент #crypto-title не найден!");
+                return;
+            }
+
+            titleElement.textContent = `Скальпинг: ${newSymbol}`;
             history.pushState(null, "", `?symbol=${newSymbol}`);
 
             // Удаляем старый график и создаем новый
@@ -41,7 +48,11 @@
                 });
         }
 
-        updatePageData(symbol);
+        if (document.getElementById("crypto-title")) {
+            updatePageData(symbol);
+        } else {
+            console.error("Ошибка: #crypto-title не найден в DOM!");
+        }
 
         fetch("https://fapi.binance.com/fapi/v1/ticker/24hr")
             .then(response => response.json())

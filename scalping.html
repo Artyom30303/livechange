@@ -16,7 +16,6 @@
         nav {
             background: #6a0dad;
             padding: 10px;
-            text-align: center;
         }
         nav a {
             color: white;
@@ -24,31 +23,31 @@
             margin: 10px;
             font-weight: bold;
         }
-        #main-container {
+        .container {
             display: flex;
             gap: 20px;
         }
-        #tradingview {
+        .chart-container {
             width: 65%;
-            height: 500px;
-            background: white;
         }
-        #analysis-panel {
+        .signals-container {
             width: 30%;
             background: white;
             padding: 15px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        #search-container {
-            margin-bottom: 10px;
+        #tradingview {
+            width: 100%;
+            height: 400px;
+        }
+        .indicators {
+            margin-top: 10px;
         }
         #journal {
-            margin-top: 20px;
             background: white;
             padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -61,68 +60,69 @@
         <a href="position.html">Позиционная торговля</a>
         <a href="spot.html">Спот</a>
     </nav>
-
-    <h2 id="crypto-title">Скальпинг: BTCUSDT</h2>
-    <div id="search-container">
-        <input type="text" id="search" placeholder="Поиск монеты...">
-        <select id="coin-selector"></select>
-    </div>
     
-    <div id="main-container">
-        <div id="tradingview"></div>
-        <div id="analysis-panel">
+    <h2 id="crypto-title">Скальпинг: BTCUSDT</h2>
+    <input type="text" id="search" placeholder="Поиск монеты...">
+    <select id="coin-selector"></select>
+    
+    <div class="container">
+        <div class="chart-container">
+            <div id="tradingview"></div>
+            <div class="indicators">
+                <p>Индикаторы: RSI, MACD</p>
+            </div>
+        </div>
+        <div class="signals-container" id="signals">
             <h3>🔥 Pump & Dump Club</h3>
-            <p id="signal-content">⏳ Ждем анализа рынка...</p>
+            <p>⏳ Ждем анализа рынка...</p>
         </div>
     </div>
     
     <div id="journal">📖 Журнал трейдера</div>
     
     <script>
-        function loadChart(symbol) {
-            new TradingView.widget({
-                "container_id": "tradingview",
-                "symbol": `BINANCE:${symbol}`,
-                "interval": "30",
-                "timezone": "Etc/UTC",
-                "theme": "light",
-                "style": "1",
-                "locale": "ru",
-                "toolbar_bg": "#f1f3f6",
-                "enable_publishing": false,
-                "hide_legend": true,
-                "save_image": false,
-                "studies": ["RSI@tv-basicstudies", "MACD@tv-basicstudies"]
+        $(document).ready(function() {
+            function loadChart(symbol) {
+                new TradingView.widget({
+                    "container_id": "tradingview",
+                    "symbol": "BINANCE:" + symbol,
+                    "interval": "30",
+                    "theme": "light",
+                    "style": "1",
+                    "locale": "ru",
+                    "toolbar_bg": "#f1f3f6",
+                    "enable_publishing": false,
+                    "hide_legend": false
+                });
+            }
+            
+            function analyzeMarket(symbol) {
+                $("#signals").html("<h3>🔥 Pump & Dump Club</h3><p>⏳ Анализируем рынок...</p>");
+                setTimeout(() => {
+                    $("#signals").html(`
+                        <h3>🔥 Pump & Dump Club</h3>
+                        <p><strong>Сигнал:</strong> 📉 Готовимся к шорту!</p>
+                        <ul>
+                            <li>📍 Точка входа: <strong>$1322.79</strong></li>
+                            <li>🛑 Стоп-лосс: <strong>$1836.88</strong></li>
+                            <li>🎯 Тейк 1: <strong>$1238.60</strong></li>
+                            <li>🎯 Тейк 2: <strong>$2119.70</strong></li>
+                            <li>🎯 Тейк 3: <strong>$2376.06</strong></li>
+                        </ul>
+                        <p><strong>📍 Аргументы:</strong> 🔴 Фигура "Голова и плечи" формируется, ждем подтверждения!</p>
+                    `);
+                }, 3000);
+            }
+            
+            $("#coin-selector").change(function() {
+                let symbol = $(this).val();
+                loadChart(symbol);
+                analyzeMarket(symbol);
             });
-        }
-
-        function analyzeMarket(symbol) {
-            document.getElementById("signal-content").innerHTML = "🔍 Анализируем...";
-            setTimeout(() => {
-                document.getElementById("signal-content").innerHTML = `
-                    <b>Сигнал:</b> 📉 Готовимся к шорту!<br>
-                    📍 Точка входа: <b>$${(Math.random() * 1000 + 1000).toFixed(2)}</b><br>
-                    ⛔ Стоп-лосс: <b>$${(Math.random() * 1000 + 1500).toFixed(2)}</b><br>
-                    🎯 Тейк 1: <b>$${(Math.random() * 1000 + 1200).toFixed(2)}</b><br>
-                    🎯 Тейк 2: <b>$${(Math.random() * 1000 + 1400).toFixed(2)}</b><br>
-                    🎯 Тейк 3: <b>$${(Math.random() * 1000 + 1600).toFixed(2)}</b><br>
-                    📢 <b>Аргументы:</b> 🛑 Фигура "Голова и плечи" формируется, ждем подтверждения!`;
-            }, 2000);
-        }
-        
-        document.getElementById("search").addEventListener("input", function() {
-            document.getElementById("coin-selector").innerHTML = `<option>${this.value.toUpperCase()}USDT</option>`;
+            
+            loadChart("BTCUSDT");
+            analyzeMarket("BTCUSDT");
         });
-
-        document.getElementById("coin-selector").addEventListener("change", function() {
-            let symbol = this.value;
-            document.getElementById("crypto-title").innerText = `Скальпинг: ${symbol}`;
-            loadChart(symbol);
-            analyzeMarket(symbol);
-        });
-        
-        loadChart("BTCUSDT");
-        analyzeMarket("BTCUSDT");
     </script>
 </body>
 </html>

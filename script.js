@@ -34,11 +34,46 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Функция загрузки TradingView
-    function loadTradingView(symbol) {
-        console.log(`📈 Загружаем график для ${symbol}`);
+    function loadTradingViewWidget(symbol) {
+    document.getElementById("chart-container").innerHTML = ""; // Очищаем перед загрузкой
 
-        tradingViewContainer.innerHTML = `<iframe src="https://www.tradingview.com/chart/?symbol=BINANCE:${symbol}" 
-            width="100%" height="500px" frameborder="0"></iframe>`;
+    let script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+    script.async = true;
+
+    script.innerHTML = JSON.stringify({
+        "symbol": `BINANCE:${symbol}`,
+        "width": "100%",
+        "height": 500,
+        "interval": "30",
+        "theme": "light",
+        "style": "1",
+        "locale": "ru",
+        "toolbar_bg": "#f1f3f6",
+        "enable_publishing": false,
+        "allow_symbol_change": true,
+        "hide_top_toolbar": false,
+        "hide_legend": false,
+        "save_image": false,
+        "container_id": "chart-container"
+    });
+
+    document.getElementById("chart-container").appendChild(script);
+}
+
+// Вызываем функцию при выборе монеты
+document.getElementById("coin-select").addEventListener("change", function () {
+    let symbol = this.value;
+    loadTradingViewWidget(symbol);
+});
+
+// Загружаем график для первой монеты
+window.onload = function () {
+    let defaultSymbol = document.getElementById("coin-select").value;
+    loadTradingViewWidget(defaultSymbol);
+};
+
     }
 
     // Анализ рынка (улучшенный)

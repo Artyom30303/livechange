@@ -13,7 +13,7 @@
             margin: 0;
             padding: 20px;
         }
-        #search {
+        #search, #coin-selector {
             width: 100%;
             padding: 10px;
             font-size: 16px;
@@ -41,13 +41,14 @@
             height: 500px;
             float: left;
         }
-        #analysis {
+        #analysis, #ai-chat, #journal {
             width: 28%;
             float: right;
             background: white;
             padding: 10px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
         }
         nav {
             background: #6a0dad;
@@ -59,16 +60,17 @@
             margin: 10px;
             font-weight: bold;
         }
-        #crypto-stats, #ai-chat, #journal {
-            margin-top: 20px;
+        #chat-input {
+            width: 80%;
             padding: 10px;
-            background: white;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 10px;
         }
-        #journal {
-            max-height: 200px;
-            overflow-y: auto;
+        #send-btn {
+            padding: 10px;
+            background: #6a0dad;
+            color: white;
+            border: none;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -83,11 +85,14 @@
     </nav>
     
     <h2 id="crypto-title">График</h2>
+    <select id="coin-selector"></select>
     <div id="crypto-stats">Загрузка данных...</div>
     <div id="tradingview"></div>
     <div id="analysis">Анализ рынка...</div>
     <div id="journal">📖 Журнал трейдера</div>
     <div id="ai-chat">AI Pussy Destroyer: Готов к разъёбу рынка! 🚀</div>
+    <input type="text" id="chat-input" placeholder="Написать сообщение...">
+    <button id="send-btn">Отправить</button>
     
     <script>
         function formatNumber(num) {
@@ -96,8 +101,7 @@
 
         document.addEventListener("DOMContentLoaded", function() {
             const urlParams = new URLSearchParams(window.location.search);
-            let symbol = urlParams.get("symbol") || "BTCUSDT.P";
-            let restSymbol = symbol.replace(".P", "");  // Убираем .P для REST API
+            let symbol = urlParams.get("symbol") || "BTCUSDT";
             document.getElementById("crypto-title").textContent = `Скальпинг: ${symbol}`;
             
             new TradingView.widget({
@@ -114,7 +118,18 @@
                 "autosize": true
             });
             
-            fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${restSymbol}`)
+            fetch("https://fapi.binance.com/fapi/v1/ticker/24hr")
+                .then(response => response.json())
+                .then(data => {
+                    let coins = data.filter(c => c.symbol.endsWith("USDT"));
+                    let selector = document.getElementById("coin-selector");
+                    selector.innerHTML = coins.map(c => `<option value="${c.symbol}">${c.symbol}</option>`).join("");
+                    selector.addEventListener("change", function() {
+                        window.location.search = `?symbol=${this.value}`;
+                    });
+                });
+            
+            fetch(`https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=${symbol}`)
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById("crypto-stats").innerHTML = `
@@ -122,20 +137,15 @@
                         <strong>Изменение 24ч:</strong> <span class="${data.priceChangePercent >= 0 ? 'green' : 'red'}">${formatNumber(data.priceChangePercent)}%</span><br>
                         <strong>Объем 24ч:</strong> ${formatNumber(data.volume)}
                     `;
-                    
-                    document.getElementById("analysis").innerHTML = `
-                        <strong>🔥 AI Pussy Destroyer:</strong> Готовимся к входу!<br>
-                        Вход: ${formatNumber(data.lastPrice * 1.002)}<br>
-                        Стоп-лосс: ${formatNumber(data.lastPrice * 0.995)}<br>
-                        Тейк-профит: ${formatNumber(data.lastPrice * 1.005)}
-                    `;
-                    
-                    document.getElementById("ai-chat").innerHTML += `<br>🧠 AI Pussy Destroyer: "Рынок кипит, ${symbol} движется! Готовь позиции!"`;
-                })
-                .catch(error => {
-                    document.getElementById("crypto-stats").innerHTML = "Ошибка загрузки данных";
-                    console.error("Ошибка загрузки данных Binance API", error);
                 });
+            
+            document.getElementById("send-btn").addEventListener("click", function() {
+                let input = document.getElementById("chat-input").value;
+                if (input) {
+                    document.getElementById("ai-chat").innerHTML += `<br>🤖 ${input}`;
+                    document.getElementById("chat-input").value = "";
+                }
+            });
         });
     </script>
 </body>

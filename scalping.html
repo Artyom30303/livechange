@@ -3,137 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scalping Terminal</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://s3.tradingview.com/tv.js"></script>
+    <title>Scalping</title>
+    <link rel="stylesheet" href="styles.css">  <!-- Подключаем новый CSS -->
 </head>
 <body>
-    <div class="header">
-        <nav>
-            <button>Дашборд</button>
-            <button>Скальпинг</button>
-            <button>Интрадей</button>
-            <button>Свинг-трейдинг</button>
-            <button>Позиционная торговля</button>
-            <button>Спот</button>
-        </nav>
-    </div>
-    
+
+    <!-- Верхняя навигация -->
+    <nav class="navbar">
+        <button class="nav-btn">Дашборд</button>
+        <button class="nav-btn active">Скальпинг</button>
+        <button class="nav-btn">Интрадей</button>
+        <button class="nav-btn">Свинг-трейдинг</button>
+        <button class="nav-btn">Позиционная торговля</button>
+        <button class="nav-btn">Спот</button>
+    </nav>
+
+    <!-- Основной контейнер -->
     <div class="main-container">
+        
+        <!-- Левая часть: График -->
         <div class="chart-container">
-            <h2>Скальпинг: <span id="current-pair">BTCUSDT</span></h2>
-            <input type="text" id="search-coin" placeholder="Поиск монеты...">
-            <select id="coin-selector"></select>
-            <div id="chart"></div>
+            <h2>Скальпинг: <span id="pair">BTCUSDT</span></h2>
+            <input type="text" id="search" placeholder="Поиск монеты...">
+            <select id="coinSelect"></select>
+            <div id="tradingview-widget"></div>
         </div>
-        
-        <div class="signals-container">
-            <h3>🔥 Pump & Dump Club</h3>
-            <div id="analysis-content">Ждём анализа рынка...</div>
+
+        <!-- Правая часть: Аналитика -->
+        <div class="signals">
+            <h2>🔥 Pump & Dump Club</h2>
+            <div id="analysis-content">
+                ⏳ Ждём анализа рынка...
+            </div>
         </div>
     </div>
-    
+
+    <!-- Журнал трейдера -->
     <div class="journal">
-        <h3>📖 Журнал трейдера</h3>
-        <div id="trade-log"></div>
+        <h2>📘 Журнал трейдера</h2>
+        <p>Записи о сделках появятся здесь.</p>
     </div>
-    
-    <script>
-        const coins = ["BTCUSDT", "ETHUSDT", "BNBUSDT", "XRPUSDT", "IOTAUSDT"];
-        
-        $(document).ready(function() {
-            let coinSelector = $('#coin-selector');
-            coins.forEach(coin => {
-                coinSelector.append(`<option value="${coin}">${coin}</option>`);
-            });
-            
-            $('#coin-selector').on('change', function() {
-                let selectedCoin = $(this).val();
-                $('#current-pair').text(selectedCoin);
-                loadChart(selectedCoin);
-                analyzeMarket(selectedCoin);
-            });
-        });
-        
-        function loadChart(symbol) {
-            new TradingView.widget({
-                "container_id": "chart",
-                "symbol": `BINANCE:${symbol}`,
-                "interval": "30",
-                "theme": "light",
-                "style": "1",
-                "timezone": "Etc/UTC",
-                "withdateranges": true,
-                "hide_side_toolbar": false,
-                "allow_symbol_change": true,
-                "details": false,
-                "studies": ["Volume@tv-basicstudies"],
-                "hideideas": true
-            });
-        }
-        
-        function analyzeMarket(symbol) {
-            fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=30m&limit=50`)
-                .then(res => res.json())
-                .then(candles => {
-                    let prices = candles.map(c => parseFloat(c[4]));
-                    let lastPrice = prices[prices.length - 1];
-                    let signal = detectSignal(prices);
-                    
-                    let analysisContent = `
-                        <strong>Сигнал:</strong> ${signal.type} <br>
-                        📍 Точка входа: <strong>$${signal.entry.toFixed(2)}</strong> <br>
-                        ⛔ Стоп-лосс: <strong>$${signal.stopLoss.toFixed(2)}</strong> <br>
-                        🎯 Тейк 1: <strong>$${signal.tp1.toFixed(2)}</strong> <br>
-                        🎯 Тейк 2: <strong>$${signal.tp2.toFixed(2)}</strong> <br>
-                        🎯 Тейк 3: <strong>$${signal.tp3.toFixed(2)}</strong> <br>
-                        <strong>📢 Аргументы:</strong> ${signal.comment}
-                    `;
-                    
-                    $('#analysis-content').html(analysisContent);
-                })
-                .catch(err => {
-                    $('#analysis-content').html("❌ Ошибка анализа рынка");
-                });
-        }
-        
-        function detectSignal(prices) {
-            let lastPrice = prices[prices.length - 1];
-            let trend = prices.slice(-10).reduce((a, b) => a + b) / 10;
-            
-            if (lastPrice > trend * 1.01) {
-                return {
-                    type: "📈 Готовимся к лонгу!",
-                    entry: lastPrice * 1.01,
-                    stopLoss: lastPrice * 0.98,
-                    tp1: lastPrice * 1.02,
-                    tp2: lastPrice * 1.04,
-                    tp3: lastPrice * 1.06,
-                    comment: "Формируется бычий тренд, ждём подтверждения."
-                };
-            } else if (lastPrice < trend * 0.99) {
-                return {
-                    type: "📉 Готовимся к шорту!",
-                    entry: lastPrice * 0.99,
-                    stopLoss: lastPrice * 1.02,
-                    tp1: lastPrice * 0.98,
-                    tp2: lastPrice * 0.96,
-                    tp3: lastPrice * 0.94,
-                    comment: "Формируется медвежий тренд, ждём подтверждения."
-                };
-            } else {
-                return {
-                    type: "⏳ Ждём подтверждения",
-                    entry: lastPrice,
-                    stopLoss: lastPrice * 0.95,
-                    tp1: lastPrice * 1.02,
-                    tp2: lastPrice * 1.04,
-                    tp3: lastPrice * 1.06,
-                    comment: "Рынок пока без явного тренда, наблюдаем за ценой."
-                };
-            }
-        }
-    </script>
+
+    <script src="script.js"></script>  <!-- Подключаем JS -->
 </body>
 </html>

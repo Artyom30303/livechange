@@ -9,11 +9,13 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 0;
+            padding: 20px;
             background-color: #f4f4f4;
         }
         h1 {
             font-size: 24px;
+            font-weight: bold;
         }
         .container {
             display: flex;
@@ -31,6 +33,16 @@
             margin-top: 10px;
             padding: 5px;
             font-size: 14px;
+            width: 100%;
+        }
+        .pump-club {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff4500;
+        }
+        .analysis-content {
+            font-size: 16px;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -42,14 +54,14 @@
             <div id="tradingview_chart" style="height: 400px;"></div>
         </div>
         <div class="block">
-            <h2>📊 Анализ рынка</h2>
-            <p id="market_analysis">Ждём анализа рынка...</p>
+            <h2 class="pump-club">🔥 Pump & Dump Club</h2>
+            <p id="market_analysis" class="analysis-content">Ждём анализа рынка...</p>
             <label for="symbol_select">Выберите монету:</label>
             <select id="symbol_select">
-                <option value="BTCUSDT">BTC/USDT</option>
-                <option value="ETHUSDT">ETH/USDT</option>
-                <option value="BNBUSDT">BNB/USDT</option>
-                <option value="DOGEUSDT">DOGE/USDT</option>
+                <option value="BTCUSDT">Bitcoin (BTC/USDT)</option>
+                <option value="ETHUSDT">Ethereum (ETH/USDT)</option>
+                <option value="BNBUSDT">Binance Coin (BNB/USDT)</option>
+                <option value="DOGEUSDT">Dogecoin (DOGE/USDT)</option>
             </select>
         </div>
     </div>

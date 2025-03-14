@@ -1,6 +1,5 @@
 const BINANCE_API_URL = 'https://api.binance.com/api/v3/klines';
 
-// Fetch market data
 async function fetchMarketData(symbol, interval, limit = 200) {
     const url = `${BINANCE_API_URL}?symbol=${symbol.toUpperCase()}&interval=${interval}&limit=${limit}`;
     const response = await fetch(url);
@@ -14,7 +13,6 @@ async function fetchMarketData(symbol, interval, limit = 200) {
     }));
 }
 
-// RSI Calculation
 function calculateRSI(closes, period = 14) {
     let gains = 0, losses = 0;
     for (let i = 1; i <= period; i++) {
@@ -29,7 +27,6 @@ function calculateRSI(closes, period = 14) {
     return 100 - (100 / (1 + rs));
 }
 
-// ATR Calculation
 function calculateATR(data, period = 14) {
     let atrSum = 0;
     for (let i = 1; i <= period; i++) {
@@ -42,7 +39,6 @@ function calculateATR(data, period = 14) {
     return atrSum / period;
 }
 
-// Detect Support and Resistance
 function detectSupportResistance(data) {
     const highs = data.map(c => c.high);
     const lows = data.map(c => c.low);
@@ -52,18 +48,24 @@ function detectSupportResistance(data) {
     };
 }
 
-// All Indicators Calculation
-function calculateIndicators(data) {
-    const closes = data.map(d => d.close);
-    return {
-        rsi: calculateRSI(closes),
-        atr: calculateATR(data),
-        levels: detectSupportResistance(data),
-        currentPrice: closes[closes.length - 1]
-    };
+function analyzeVolume(data) {
+    const recentVolume = data[data.length - 1].volume;
+    const avgVolume = data.slice(-20).reduce((sum, candle) => sum + candle.volume, 0) / 20;
+    return recentVolume > avgVolume * 1.5;
 }
 
-// Main Market Analysis
+function detectPriceAction(data) {
+    const lastCandle = data[data.length - 1];
+    const candleRange = lastCandle.high - lastCandle.low;
+    const bodySize = Math.abs(lastCandle.close - lastCandle.open);
+
+    if (bodySize < candleRange * 0.2) {
+        if (lastCandle.close > lastCandle.open) return 'Пин-бар вверх';
+        else return 'Пин-бар вниз';
+    }
+    return 'Нейтрально';
+}
+
 async function analyzeMarket(symbol, interval = '30m') {
     const marketData = await fetchMarketData(symbol, interval);
 
@@ -72,23 +74,29 @@ async function analyzeMarket(symbol, interval = '30m') {
         return;
     }
 
-    const indicators = calculateIndicators(marketData);
-    const { rsi, atr, levels: { support, resistance }, currentPrice } = indicators;
+    const closes = marketData.map(d => d.close);
+    const rsi = calculateRSI(closes);
+    const atr = calculateATR(marketData);
+    const { support, resistance } = detectSupportResistance(marketData);
+    const highVolume = analyzeVolume(marketData);
+    const priceAction = detectPriceAction(marketData);
+
+    const currentPrice = closes[closes.length - 1];
 
     let signal, entry, stopLoss, takeProfit, argument;
 
-    if (rsi < 30 && currentPrice <= support) {
+    if ((rsi < 30 && currentPrice <= support) || (priceAction === 'Пин-бар вверх' && highVolume)) {
         signal = 'Лонг';
         entry = currentPrice;
-        stopLoss = support - atr * 0.5;
+        stopLoss = support - atr;
         takeProfit = resistance;
-        argument = `RSI перепродан (${rsi.toFixed(2)}), цена у поддержки ${support}`;
-    } else if (rsi > 70 && currentPrice >= resistance) {
+        argument = `RSI перепродан (${rsi.toFixed(2)}), Прайс экшен: ${priceAction}, Повышенный объем`;
+    } else if ((rsi > 70 && currentPrice >= resistance) || (priceAction === 'Пин-бар вниз' && highVolume)) {
         signal = 'Шорт';
         entry = currentPrice;
-        stopLoss = resistance + atr * 0.5;
+        stopLoss = resistance + atr;
         takeProfit = support;
-        argument = `RSI перекуплен (${rsi.toFixed(2)}), цена у сопротивления ${resistance}`;
+        argument = `RSI перекуплен (${rsi.toFixed(2)}), Прайс экшен: ${priceAction}, Повышенный объем`;
     } else if (currentPrice > support && currentPrice < resistance) {
         signal = 'Нейтрально';
         entry = null;
@@ -98,9 +106,9 @@ async function analyzeMarket(symbol, interval = '30m') {
     } else {
         signal = currentPrice >= resistance ? 'Шорт' : 'Лонг';
         entry = currentPrice;
-        stopLoss = currentPrice >= resistance ? resistance + atr * 0.5 : support - atr * 0.5;
+        stopLoss = currentPrice >= resistance ? resistance + atr : support - atr;
         takeProfit = currentPrice >= resistance ? support : resistance;
-        argument = 'Цена вблизи важного уровня';
+        argument = 'Цена у ключевого уровня';
     }
 
     return {
@@ -113,5 +121,5 @@ async function analyzeMarket(symbol, interval = '30m') {
     };
 }
 
-// Пример использования
-analyzeMarket('BTCUSDT').then(result => console.log(result)).catch(e => console.error(e));
+// Использование
+analyzeMarket('BTCUSDT').then(console.log).catch(console.error);

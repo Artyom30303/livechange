@@ -5,39 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scalping Terminal</title>
     <script src="https://s3.tradingview.com/tv.js"></script>
-    <script defer src="scalping.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-        }
-        .container {
-            display: flex;
-            justify-content: space-around;
-            padding: 20px;
-        }
-        .chart-container, .analysis-container {
-            width: 45%;
-            background: white;
-            padding: 15px;
-            border-radius: 5px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-        }
-        #tradingview_chart {
-            height: 400px;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <header>
+        <h1>Scalping Terminal</h1>
+    </header>
+    
     <div class="container">
-        <div class="chart-container">
-            <h3>График</h3>
+        <div class="panel">
+            <h2>График</h2>
             <div id="tradingview_chart">График загружается...</div>
         </div>
-        <div class="analysis-container">
-            <h3>📊 Анализ рынка</h3>
+        
+        <div class="panel">
+            <h2>Анализ рынка</h2>
             <p id="market_analysis">Ждём анализа рынка...</p>
+            <label for="symbol_select">Выберите монету:</label>
+            <select id="symbol_select">
+                <option value="BTCUSDT">BTC/USDT</option>
+                <option value="ETHUSDT">ETH/USDT</option>
+                <option value="DOGEUSDT">DOGE/USDT</option>
+                <option value="ADAUSDT">ADA/USDT</option>
+            </select>
         </div>
     </div>
+
+    <script src="scalping.js"></script>
 </body>
 </html>

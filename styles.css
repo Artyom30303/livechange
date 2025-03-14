@@ -8,106 +8,72 @@ body {
 
 /* Навигационная панель */
 .navbar {
-    background: #6200ea;
-    padding: 10px;
-    display: flex;
-    justify-content: space-around;
-}
-
-.navbar button {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-    padding: 10px 15px;
-}
-
-.navbar button.active {
-    font-weight: bold;
-    text-decoration: underline;
-}
-
-/* Верхняя панель */
-.top-panel {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 20px;
-    margin-bottom: -10px;
+    background-color: #6200ea;
+    padding: 10px 20px;
+    color: white;
 }
 
-/* Поиск монеты */
-.search-container {
+.navbar a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    margin-right: 20px;
+}
+
+.navbar a.active {
+    text-decoration: underline;
+}
+
+/* Верхняя панель с поиском */
+.top-panel {
     display: flex;
-    width: 100%;
-    gap: 10px;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background: white;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-#search-coin {
-    flex: 1;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
+#search {
+    padding: 5px;
+    width: 200px;
 }
 
-#coin-select {
-    width: 30%;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-}
-
-/* Основной контейнер */
+/* Контейнер для графика и панели сигналов */
 .container {
     display: flex;
-    padding: 10px 20px;
-    align-items: flex-start;
+    justify-content: space-between;
+    margin: 20px;
 }
 
-/* Левая панель (график) */
-.left-panel {
-    width: 65%;
-}
-
-#chart-container {
-    width: 100%;
-    height: 450px;
+/* График */
+.chart-container {
+    width: 49%;
     background: white;
+    padding: 20px;
     border-radius: 10px;
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    min-height: 500px;
 }
 
-/* Правая панель (панель сигналов) */
-.right-panel {
-    width: 35%;
+/* Панель сигналов */
+.signal-panel {
+    width: 49%;
     background: white;
-    padding: 15px;
+    padding: 20px;
     border-radius: 10px;
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-    margin-left: 10px; /* Маленький отступ от графика */
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    height: 450px; /* Совпадает с высотой графика */
-}
-
-/* Блок сигналов */
-#signals {
-    font-size: 16px;
-    color: black;
-    margin-top: 10px; /* Чтобы текст начинался сразу под заголовком */
-    line-height: 1.5;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    min-height: 500px;
 }
 
 /* Журнал трейдера */
-.journal {
+.trader-journal {
+    width: 100%;
     background: white;
-    padding: 15px;
-    margin: 20px;
+    padding: 20px;
     border-radius: 10px;
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }

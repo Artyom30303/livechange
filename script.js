@@ -1,84 +1,83 @@
-document.addEventListener("DOMContentLoaded", async function () {
-    console.log("📜 JS загружен!");
+const BINANCE_API_URL = 'https://api.binance.com/api/v3/klines';
 
-    const coinSelect = document.getElementById("coin-select");
-    const searchCoin = document.getElementById("search-coin");
-    const chartContainer = document.getElementById("chart-container");
-    const signalsDiv = document.getElementById("signals");
+async function fetchMarketData(symbol, interval, limit = 50) {
+    try {
+        const url = `${BINANCE_API_URL}?symbol=${symbol.toUpperCase()}&interval=${interval}&limit=${limit}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        if (!Array.isArray(data) || data.length === 0) throw new Error("Недостаточно данных от Binance");
+        return data.map(k => ({
+            open: parseFloat(k[1]),
+            high: parseFloat(k[2]),
+            low: parseFloat(k[3]),
+            close: parseFloat(k[4]),
+            volume: parseFloat(k[5])
+        }));
+    } catch (error) {
+        console.error("Ошибка загрузки данных Binance:", error);
+        return [];
+    }
+}
 
-    const BINANCE_API = "https://api.binance.com/api/v3/ticker/24hr";
-    const coins = ["BTCUSDT", "ETHUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT", "SOLUSDT", "DOGEUSDT"];
+function calculateRSI(closes, period = 14) {
+    if (closes.length < period) return null;
+    let gains = 0, losses = 0;
+    for (let i = 1; i < period; i++) {
+        const delta = closes[i] - closes[i - 1];
+        if (delta > 0) gains += delta;
+        else losses -= delta;
+    }
+    let avgGain = gains / period;
+    let avgLoss = losses / period;
+    if (avgLoss === 0) return 100;
+    const rs = avgGain / avgLoss;
+    return 100 - (100 / (1 + rs));
+}
 
-    function updateCoinList() {
-        coinSelect.innerHTML = "";
-        coins.forEach(coin => {
-            let option = document.createElement("option");
-            option.value = coin;
-            option.textContent = coin;
-            coinSelect.appendChild(option);
+async function analyzeMarket(symbol, interval = '30m') {
+    const marketData = await fetchMarketData(symbol, interval);
+    if (!marketData || marketData.length < 20) {
+        console.warn("Недостаточно данных для анализа");
+        return;
+    }
+    
+    const closes = marketData.map(d => d.close);
+    const rsi = calculateRSI(closes);
+    if (rsi === null) return;
+    const currentPrice = closes[closes.length - 1];
+    let signal = rsi < 30 ? 'Лонг' : rsi > 70 ? 'Шорт' : 'Нейтрально';
+    let argument = rsi < 30 ? 'Перепроданность, возможен рост' : rsi > 70 ? 'Перекупленность, возможен спад' : 'Цена в нейтральной зоне';
+    
+    if (document.getElementById("signal")) document.getElementById("signal").innerText = signal;
+    if (document.getElementById("rsi")) document.getElementById("rsi").innerText = rsi.toFixed(2);
+    if (document.getElementById("price")) document.getElementById("price").innerText = currentPrice.toFixed(2);
+    if (document.getElementById("argument")) document.getElementById("argument").innerText = argument;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    analyzeMarket('BTCUSDT');
+    
+    if (typeof TradingView !== 'undefined') {
+        new TradingView.widget({
+            "container_id": "tradingview_chart",
+            "symbol": "BINANCE:BTCUSDT",
+            "interval": "30",
+            "theme": "light",
+            "style": "1",
+            "locale": "ru",
+            "width": "100%",
+            "height": "400px",
+            "enable_publishing": false,
+            "allow_symbol_change": true
+        });
+    } else {
+        console.error("Ошибка загрузки TradingView");
+    }
+    
+    const symbolSelect = document.getElementById("symbol_select");
+    if (symbolSelect) {
+        symbolSelect.addEventListener("change", (event) => {
+            analyzeMarket(event.target.value);
         });
     }
-
-    searchCoin.addEventListener("input", function () {
-        let searchText = this.value.toUpperCase();
-        coinSelect.innerHTML = "";
-        coins
-            .filter(coin => coin.includes(searchText))
-            .forEach(coin => {
-                let option = document.createElement("option");
-                option.value = coin;
-                option.textContent = coin;
-                coinSelect.appendChild(option);
-            });
-    });
-
-    async function fetchBinanceData(symbol) {
-        try {
-            let response = await fetch(`${BINANCE_API}?symbol=${symbol}`);
-            let data = await response.json();
-            return {
-                price: parseFloat(data.lastPrice).toFixed(2),
-                high: parseFloat(data.highPrice).toFixed(2),
-                low: parseFloat(data.lowPrice).toFixed(2),
-            };
-        } catch (error) {
-            console.error("❌ Ошибка API Binance:", error);
-            return null;
-        }
-    }
-
-    function loadChart(symbol) {
-        chartContainer.innerHTML = `<iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:${symbol}&interval=30" width="100%" height="450px" frameborder="0"></iframe>`;
-    }
-
-    async function loadSignals(symbol) {
-        let marketData = await fetchBinanceData(symbol);
-        if (!marketData) {
-            signalsDiv.innerHTML = "<p>❌ Ошибка данных.</p>";
-            return;
-        }
-
-        let { price, high, low } = marketData;
-        let trend = price > ((parseFloat(high) + parseFloat(low)) / 2) ? "Лонг" : "Шорт";
-        let stopLoss = trend === "Лонг" ? (price * 0.98).toFixed(2) : (price * 1.02).toFixed(2);
-        let takeProfit1 = trend === "Лонг" ? (price * 1.02).toFixed(2) : (price * 0.98).toFixed(2);
-        let argument = trend === "Лонг" ? "Обнаружена поддержка" : "Сопротивление, вероятен шорт";
-
-        signalsDiv.innerHTML = `
-            <p><strong>📉 Сигнал:</strong> ${trend}</p>
-            <p>📍 <strong>Точка входа:</strong> $${price}</p>
-            <p>🛑 <strong>Стоп-лосс:</strong> $${stopLoss}</p>
-            <p>🎯 <strong>Тейк 1:</strong> $${takeProfit1}</p>
-            <p>📌 <strong>Аргументы:</strong> ${argument}</p>
-        `;
-    }
-
-    updateCoinList();
-    coinSelect.addEventListener("change", function () {
-        loadChart(this.value);
-        loadSignals(this.value);
-    });
-
-    loadChart("BTCUSDT");
-    loadSignals("BTCUSDT");
 });

@@ -41,26 +41,35 @@
             height: 500px;
             margin-top: 20px;
         }
-        nav {
+
+        /* Обновленная шапка */
+        .navbar {
             background: #6a0dad;
-            padding: 10px;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            font-size: 16px;
         }
-        nav a {
+        .navbar a {
             color: white;
             text-decoration: none;
-            margin: 10px;
             font-weight: bold;
+            padding: 10px 15px;
+            transition: 0.3s;
+        }
+        .navbar a:hover, .navbar a.active {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <nav>
-        <a href="index.html">Дашборд</a>
-        <a href="scalping.html">Скальпинг</a>
-        <a href="intraday.html">Интрадей</a>
-        <a href="swing.html">Свинг-трейдинг</a>
-        <a href="position.html">Позиционная торговля</a>
-        <a href="spot.html">Спот</a>
+    <nav class="navbar">
+        <a href="index.html" class="active">🏠 Дашборд</a>
+        <a href="scalping.html">⚡ Скальпинг</a>
+        <a href="intraday.html">📈 Интрадей</a>
+        <a href="swing.html">📊 Свинг-трейдинг</a>
+        <a href="position.html">📉 Позиционная торговля</a>
+        <a href="spot.html">💰 Спот</a>
     </nav>
     
     <h2>Крипто-Дашборд</h2>

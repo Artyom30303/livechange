@@ -59,15 +59,26 @@ async function analyzeMarket(symbol) {
     const currentPrice = closes[closes.length - 1];
 
     let signal = "Нейтрально";
+    let argument = "Цена в нейтральной зоне";
+
     if (rsi !== null) {
-        if (rsi < 30) signal = "Лонг";
-        else if (rsi > 70) signal = "Шорт";
+        if (rsi < 30) {
+            signal = "Лонг";
+            argument = `RSI перепродан (${rsi.toFixed(2)}), возможен отскок`;
+        } else if (rsi > 70) {
+            signal = "Шорт";
+            argument = `RSI перекуплен (${rsi.toFixed(2)}), возможен разворот`;
+        }
     }
 
     console.log("📊 Результат анализа:", { symbol, signal, rsi: rsi?.toFixed(2), currentPrice });
 
-    document.getElementById("market_analysis").innerText = 
-        `Сигнал: ${signal} | RSI: ${rsi?.toFixed(2)} | Цена: ${currentPrice.toFixed(2)}`;
+    document.getElementById("market_analysis").innerHTML = `
+        <strong>📌 Сигнал:</strong> ${signal}<br>
+        <strong>📊 RSI:</strong> ${rsi?.toFixed(2)}<br>
+        <strong>💰 Цена:</strong> ${currentPrice.toFixed(5)}<br>
+        <strong>📢 Аргумент:</strong> ${argument}
+    `;
 }
 
 // Загрузка TradingView
@@ -81,7 +92,7 @@ function loadTradingView(symbol) {
         "container_id": "tradingview_chart",
         "symbol": `BINANCE:${symbol}`,
         "interval": "30",
-        "theme": "dark",
+        "theme": "light",
         "style": "1",
         "locale": "ru",
         "toolbar_bg": "#f1f3f6",

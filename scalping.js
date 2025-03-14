@@ -70,15 +70,16 @@ async function analyzeMarket(symbol) {
         `Сигнал: ${signal} | RSI: ${rsi?.toFixed(2)} | Цена: ${currentPrice.toFixed(2)}`;
 }
 
-// Инициализация страницы
-document.addEventListener("DOMContentLoaded", () => {
-    const defaultSymbol = "BTCUSDT";
-    analyzeMarket(defaultSymbol);
+// Загрузка TradingView
+function loadTradingView(symbol) {
+    if (typeof TradingView === "undefined") {
+        console.error("TradingView не загружен!");
+        return;
+    }
 
-    // Загрузка графика TradingView
     new TradingView.widget({
         "container_id": "tradingview_chart",
-        "symbol": `BINANCE:${defaultSymbol}`,
+        "symbol": `BINANCE:${symbol}`,
         "interval": "30",
         "theme": "dark",
         "style": "1",
@@ -91,6 +92,13 @@ document.addEventListener("DOMContentLoaded", () => {
         "width": "100%",
         "height": "400px"
     });
+}
+
+// Инициализация страницы
+document.addEventListener("DOMContentLoaded", () => {
+    const defaultSymbol = "BTCUSDT";
+    analyzeMarket(defaultSymbol);
+    loadTradingView(defaultSymbol);
 
     // Обработчик смены монеты
     const symbolSelect = document.getElementById("symbol_select");
@@ -98,6 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
         symbolSelect.addEventListener("change", (event) => {
             const selectedSymbol = event.target.value;
             analyzeMarket(selectedSymbol);
+            loadTradingView(selectedSymbol);
         });
     }
 });

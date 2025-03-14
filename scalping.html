@@ -4,115 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scalping Terminal</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 0;
-        }
-        .navbar {
-            background-color: #6a0dad;
-            padding: 15px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            color: white;
-            font-size: 18px;
-        }
-        .container {
-            width: 95%;
-            margin: auto;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .top-panel {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            margin-top: 15px;
-        }
-        .panel {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .market-section {
-            display: flex;
-            width: 100%;
-            justify-content: space-between;
-            margin-top: 15px;
-        }
-        .chart-container {
-            flex: 3;
-            padding: 15px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin: 10px;
-        }
-        .signal-container {
-            flex: 2;
-            padding: 15px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin: 10px;
-        }
-        .journal-container {
-            width: 100%;
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin: 10px 0;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://s3.tradingview.com/tv.js"></script>
 </head>
 <body>
     <nav class="navbar">
-        <span>🏠 Дашборд</span>
-        <span>⚡ Скальпинг</span>
-        <span>📈 Интрадей</span>
-        <span>📊 Свинг-трейдинг</span>
-        <span>💰 Спот</span>
+        <a href="#" class="nav-item">🏠 Дашборд</a>
+        <a href="#" class="nav-item active">⚡ Скальпинг</a>
+        <a href="#" class="nav-item">📈 Интрадей</a>
+        <a href="#" class="nav-item">📊 Свинг-трейдинг</a>
+        <a href="#" class="nav-item">📉 Позиционная торговля</a>
+        <a href="#" class="nav-item">💰 Спот</a>
     </nav>
-
+    <div class="top-panel">
+        <select id="symbol_select">
+            <option value="BTCUSDT">Bitcoin (BTC/USDT)</option>
+            <option value="ETHUSDT">Ethereum (ETH/USDT)</option>
+            <option value="BNBUSDT">Binance Coin (BNB/USDT)</option>
+            <option value="DOGEUSDT">Dogecoin (DOGE/USDT)</option>
+        </select>
+        <input type="text" id="search" placeholder="Поиск монеты...">
+    </div>
     <div class="container">
-        <div class="top-panel">
-            <select id="symbol_select">
-                <option value="BTCUSDT">Bitcoin (BTC/USDT)</option>
-                <option value="ETHUSDT">Ethereum (ETH/USDT)</option>
-                <option value="BNBUSDT">Binance Coin (BNB/USDT)</option>
-                <option value="DOGEUSDT">Dogecoin (DOGE/USDT)</option>
-            </select>
-            <input type="text" id="search" placeholder="Поиск монеты...">
+        <div class="box" id="tradingview_chart">
+            <h2>📊 График</h2>
         </div>
-
-        <div class="market-section">
-            <div class="chart-container">
-                <h3>📊 График</h3>
-                <div id="tradingview_chart"></div>
-            </div>
-
-            <div class="signal-container">
-                <h3>🔥 Pump & Dump Club</h3>
-                <p><b>📍 Сигнал:</b> <span id="signal">-</span></p>
-                <p><b>🎯 Точка входа:</b> <span id="entry">-</span></p>
-                <p><b>🛑 Стоп-лосс:</b> <span id="stoploss">-</span></p>
-                <p><b>🎯 Тейк 1:</b> <span id="take1">-</span></p>
-                <p><b>📌 Аргумент:</b> <span id="argument">-</span></p>
-            </div>
-        </div>
-
-        <div class="journal-container">
-            <h3>📘 Журнал трейдера</h3>
-            <p>Записи о сделках появятся здесь.</p>
+        <div class="box signal-panel">
+            <h2>🔥 Pump & Dump Club</h2>
+            <p>📍 <strong>Сигнал:</strong> <span id="signal">-</span></p>
+            <p>🎯 <strong>Точка входа:</strong> <span id="entry">-</span></p>
+            <p>🔴 <strong>Стоп-лосс:</strong> <span id="stoploss">-</span></p>
+            <p>🎯 <strong>Тейк 1:</strong> <span id="take1">-</span></p>
+            <p>📌 <strong>Аргумент:</strong> <span id="argument">-</span></p>
         </div>
     </div>
-    
+    <div class="box trader-journal">
+        <h2>📘 Журнал трейдера</h2>
+        <p>Записи о сделках появятся здесь.</p>
+    </div>
     <script src="scalping.js"></script>
 </body>
 </html>

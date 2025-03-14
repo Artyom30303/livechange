@@ -5,39 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scalping Terminal</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
     <nav class="navbar">
-        <div class="nav-item">🏠 Дашборд</div>
-        <div class="nav-item">⚡ Скальпинг</div>
-        <div class="nav-item">📈 Интрадей</div>
-        <div class="nav-item">📊 Свинг-трейдинг</div>
-        <div class="nav-item">💰 Спот</div>
+        <a href="#" class="nav-item">🏠 Дашборд</a>
+        <a href="#" class="nav-item active">⚡ Скальпинг</a>
+        <a href="#" class="nav-item">📈 Интрадей</a>
+        <a href="#" class="nav-item">📊 Свинг-трейдинг</a>
+        <a href="#" class="nav-item">💰 Спот</a>
     </nav>
-    
+
     <div class="container">
-        <div class="search-panel">
-            <select id="symbol_select"></select>
-            <input type="text" id="search_input" placeholder="Поиск монеты...">
+        <div class="top-panel">
+            <select id="symbol_select" class="symbol-dropdown">
+                <option value="BTCUSDT">Bitcoin (BTC/USDT)</option>
+                <option value="ETHUSDT">Ethereum (ETH/USDT)</option>
+                <option value="BNBUSDT">Binance Coin (BNB/USDT)</option>
+                <option value="DOGEUSDT">Dogecoin (DOGE/USDT)</option>
+            </select>
+            <input type="text" id="search_box" class="search-box" placeholder="Поиск монеты...">
         </div>
-        
+
         <div class="content">
-            <div class="chart-section">
-                <h2>📉 График</h2>
+            <div class="chart-container">
+                <h2>📈 График</h2>
                 <div id="tradingview_chart"></div>
             </div>
             
-            <div class="signal-panel">
+            <div class="analysis-container">
                 <h2>🔥 Pump & Dump Club</h2>
-                <p><strong>📍 Сигнал:</strong> <span id="signal"></span></p>
-                <p><strong>📊 RSI:</strong> <span id="rsi"></span></p>
-                <p><strong>💰 Цена:</strong> <span id="price"></span></p>
-                <p><strong>📌 Аргумент:</strong> <span id="argument"></span></p>
+                <p><strong>📍 Сигнал:</strong> <span id="signal">-</span></p>
+                <p><strong>📊 RSI:</strong> <span id="rsi">-</span></p>
+                <p><strong>💰 Цена:</strong> <span id="price">-</span></p>
+                <p><strong>📌 Аргумент:</strong> <span id="argument">-</span></p>
             </div>
         </div>
     </div>
-    
+
     <script src="scalping.js"></script>
 </body>
 </html>

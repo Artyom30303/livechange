@@ -81,42 +81,24 @@ async function analyzeMarket(symbol) {
     `;
 }
 
-// Загрузка TradingView
-function loadTradingView(symbol) {
-    if (typeof TradingView === "undefined") {
-        console.error("TradingView не загружен!");
-        return;
+// Обработчик поиска монет
+document.getElementById("search_input").addEventListener("input", function () {
+    const filter = this.value.toUpperCase();
+    const dropdown = document.getElementById("symbol_select");
+    for (let option of dropdown.options) {
+        option.style.display = option.text.toUpperCase().includes(filter) ? "" : "none";
     }
+});
 
-    new TradingView.widget({
-        "container_id": "tradingview_chart",
-        "symbol": `BINANCE:${symbol}`,
-        "interval": "30",
-        "theme": "light",
-        "style": "1",
-        "locale": "ru",
-        "toolbar_bg": "#f1f3f6",
-        "enable_publishing": false,
-        "hide_top_toolbar": false,
-        "allow_symbol_change": true,
-        "show_popup_button": true,
-        "width": "100%",
-        "height": "400px"
-    });
-}
-
-// Инициализация страницы
+// Инициализация
 document.addEventListener("DOMContentLoaded", () => {
     const defaultSymbol = "BTCUSDT";
     analyzeMarket(defaultSymbol);
-    loadTradingView(defaultSymbol);
 
     const symbolSelect = document.getElementById("symbol_select");
     if (symbolSelect) {
         symbolSelect.addEventListener("change", (event) => {
-            const selectedSymbol = event.target.value;
-            analyzeMarket(selectedSymbol);
-            loadTradingView(selectedSymbol);
+            analyzeMarket(event.target.value);
         });
     }
 });

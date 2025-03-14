@@ -1,10 +1,17 @@
 const BINANCE_API_URL = 'https://api.binance.com/api/v3/klines';
 
-async function fetchMarketData(symbol, interval, limit = 100) {
+// Получение данных с Binance API
+async function fetchMarketData(symbol, interval = '30m', limit = 100) {
     try {
         const url = `${BINANCE_API_URL}?symbol=${symbol.toUpperCase()}&interval=${interval}&limit=${limit}`;
         const response = await fetch(url);
         const data = await response.json();
+        
+        if (!Array.isArray(data)) {
+            console.error("Ошибка данных Binance API:", data);
+            return [];
+        }
+
         return data.map(k => ({
             open: parseFloat(k[1]),
             high: parseFloat(k[2]),
@@ -14,25 +21,33 @@ async function fetchMarketData(symbol, interval, limit = 100) {
         }));
     } catch (error) {
         console.error("Ошибка получения данных с Binance:", error);
+        return [];
     }
 }
 
+// Расчет индикатора RSI
 function calculateRSI(closes, period = 14) {
+    if (closes.length < period) return null;
+
     let gains = 0, losses = 0;
-    for (let i = 1; i < period; i++) {
+    for (let i = 1; i <= period; i++) {
         const delta = closes[i] - closes[i - 1];
         if (delta > 0) gains += delta;
         else losses -= delta;
     }
+
     let avgGain = gains / period;
     let avgLoss = losses / period;
     if (avgLoss === 0) return 100;
+    
     const rs = avgGain / avgLoss;
     return 100 - (100 / (1 + rs));
 }
 
-async function analyzeMarket(symbol, interval = '30m') {
-    const marketData = await fetchMarketData(symbol, interval);
+// Анализ рынка
+async function analyzeMarket(symbol) {
+    const marketData = await fetchMarketData(symbol);
+
     if (!marketData || marketData.length < 50) {
         console.warn("Недостаточно данных для анализа");
         document.getElementById("market_analysis").innerText = "Ошибка: недостаточно данных";
@@ -42,19 +57,28 @@ async function analyzeMarket(symbol, interval = '30m') {
     const closes = marketData.map(d => d.close);
     const rsi = calculateRSI(closes);
     const currentPrice = closes[closes.length - 1];
-    let signal = rsi < 30 ? 'Лонг' : rsi > 70 ? 'Шорт' : 'Нейтрально';
-    
-    console.log("📊 Результат RSI анализа:", { symbol, signal, rsi: rsi.toFixed(2), currentPrice });
-    document.getElementById("market_analysis").innerText = `Сигнал: ${signal} | RSI: ${rsi.toFixed(2)} | Цена: ${currentPrice.toFixed(2)}`;
+
+    let signal = "Нейтрально";
+    if (rsi !== null) {
+        if (rsi < 30) signal = "Лонг";
+        else if (rsi > 70) signal = "Шорт";
+    }
+
+    console.log("📊 Результат анализа:", { symbol, signal, rsi: rsi?.toFixed(2), currentPrice });
+
+    document.getElementById("market_analysis").innerText = 
+        `Сигнал: ${signal} | RSI: ${rsi?.toFixed(2)} | Цена: ${currentPrice.toFixed(2)}`;
 }
 
+// Инициализация страницы
 document.addEventListener("DOMContentLoaded", () => {
-    analyzeMarket('BTCUSDT');
-    
-    // Грузим график TradingView
+    const defaultSymbol = "BTCUSDT";
+    analyzeMarket(defaultSymbol);
+
+    // Загрузка графика TradingView
     new TradingView.widget({
         "container_id": "tradingview_chart",
-        "symbol": "BINANCE:BTCUSDT",
+        "symbol": `BINANCE:${defaultSymbol}`,
         "interval": "30",
         "theme": "dark",
         "style": "1",
@@ -68,7 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "height": "400px"
     });
 
-    // Восстанавливаем выпадающий список и панель поиска
+    // Обработчик смены монеты
     const symbolSelect = document.getElementById("symbol_select");
     if (symbolSelect) {
         symbolSelect.addEventListener("change", (event) => {

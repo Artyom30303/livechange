@@ -22,8 +22,14 @@
             justify-content: space-around;
             font-weight: bold;
         }
+        .navbar div {
+            cursor: pointer;
+        }
+        .navbar div:hover {
+            text-decoration: underline;
+        }
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 20px auto;
             padding: 0 20px;
         }
@@ -65,11 +71,11 @@
 </head>
 <body>
     <div class="navbar">
-        <div>🏠 Дашборд</div>
-        <div>⚡ Скальпинг</div>
-        <div>📈 Интрадей</div>
-        <div>📊 Свинг-трейдинг</div>
-        <div>💰 Спот</div>
+        <div onclick="window.location.href='dashboard.html'">🏠 Дашборд</div>
+        <div onclick="window.location.href='scalping.html'">⚡ Скальпинг</div>
+        <div onclick="window.location.href='intraday.html'">📈 Интрадей</div>
+        <div onclick="window.location.href='swing.html'">📊 Свинг-трейдинг</div>
+        <div onclick="window.location.href='spot.html'">💰 Спот</div>
     </div>
     
     <div class="container">
@@ -84,11 +90,11 @@
         </div>
 
         <div class="content">
-            <div class="block">
+            <div class="block" style="flex: 1.5;">
                 <h2>📈 График</h2>
-                <div id="tradingview_chart" style="height: 400px;"></div>
+                <div id="tradingview_chart" style="height: 450px;"></div>
             </div>
-            <div class="block">
+            <div class="block" style="flex: 1;">
                 <h2 class="pump-club">🔥 Pump & Dump Club</h2>
                 <p id="market_analysis" class="analysis-content">Ждём анализа рынка...</p>
             </div>

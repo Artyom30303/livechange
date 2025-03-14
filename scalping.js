@@ -1,18 +1,14 @@
-// scalping.js - Грамотный ТА для ПД (Pussy Destroyer)
+// 🔥 Pussy Destroyer 2.0 - Новый, полностью рабочий scalping.js
 
-// Подключение Binance API
 const BINANCE_API_URL = "https://api.binance.com/api/v3/klines";
-
-// Настройка таймфреймов
 const timeframes = ["30m", "1h", "4h", "1d"];
 
-// Функция для получения данных по свечам
 async function fetchMarketData(symbol, interval) {
     const url = `${BINANCE_API_URL}?symbol=${symbol.toUpperCase()}&interval=${interval}&limit=100`;
     const response = await fetch(url);
     const data = await response.json();
+
     return data.map(candle => ({
-        time: candle[0],
         open: parseFloat(candle[1]),
         high: parseFloat(candle[2]),
         low: parseFloat(candle[3]),
@@ -21,97 +17,113 @@ async function fetchMarketData(symbol, interval) {
     }));
 }
 
-// Функция для расчета RSI
-function calculateRSI(data, period) {
+// 🔥 Грамотный расчет RSI
+function calculateRSI(data, period = 14) {
     let gains = 0, losses = 0;
-    for (let i = 1; i < period; i++) {
+    for (let i = 1; i <= period; i++) {
         let diff = data[i].close - data[i - 1].close;
-        if (diff > 0) gains += diff;
-        else losses -= diff;
+        gains += diff > 0 ? diff : 0;
+        losses += diff < 0 ? -diff : 0;
     }
     let avgGain = gains / period;
     let avgLoss = losses / period;
-    let rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
-    return avgLoss === 0 ? 100 : 100 - (100 / (1 + rs));
+
+    if(avgLoss === 0) return 100;
+
+    let rs = avgGain / avgLoss;
+    return 100 - (100 / (1 + rs));
 }
 
-// Функция для расчета MACD
-function calculateMACD(data, shortPeriod = 12, longPeriod = 26, signalPeriod = 9) {
-    function calculateEMA(data, period) {
-        let ema = [];
-        let multiplier = 2 / (period + 1);
-        ema.push(data[0].close);
-        for (let i = 1; i < data.length; i++) {
-            ema.push((data[i].close - ema[i - 1]) * multiplier + ema[i - 1]);
-        }
-        return ema;
+// 🔥 EMA calculation
+function calculateEMA(data, period) {
+    let ema = [];
+    const k = 2 / (period + 1);
+    ema[0] = data[0].close;
+
+    for (let i = 1; i < data.length; i++) {
+        ema[i] = data[i].close * k + ema[i - 1] * (1 - k);
     }
 
+    return ema;
+}
+
+// 🔥 Грамотный расчет MACD
+function calculateMACD(data, shortPeriod = 12, longPeriod = 26, signalPeriod = 9) {
     let shortEMA = calculateEMA(data, shortPeriod);
     let longEMA = calculateEMA(data, longPeriod);
-    let macdLine = shortEMA.map((val, i) => val - longEMA[i]);
 
-    if (macdLine.length < longPeriod) return { macdLine: [], signalLine: [], histogram: [] };
-    
-    let signalLine = calculateEMA(macdLine.slice(longPeriod), signalPeriod);
-    let histogram = macdLine.slice(longPeriod).map((val, i) => val - signalLine[i]);
+    let macdLine = shortEMA.map((val, i) => val - longEMA[i]).slice(longPeriod);
 
-    return { macdLine: macdLine.slice(longPeriod), signalLine, histogram };
+    if (macdLine.length < signalPeriod) return {macdLine: [], signalLine: [], histogram: []};
+
+    let signalLine = calculateEMA(macdLine.map(val => ({close: val})), signalPeriod);
+    let histogram = macdLine.map((val, i) => val - signalLine[i]);
+
+    return { macdLine, signalLine, histogram };
 }
 
-// Функция для расчета Bollinger Bands
+// 🔥 Грамотный расчет Bollinger Bands
 function calculateBollingerBands(data, period = 20, stdDevMultiplier = 2) {
-    let upperBand = [], lowerBand = [], sma = [];
-    for (let i = period - 1; i < data.length; i++) {
-        let slice = data.slice(i - period + 1, i + 1);
-        let mean = slice.reduce((acc, val) => acc + val.close, 0) / period;
-        let variance = slice.reduce((acc, val) => acc + Math.pow(val.close - mean, 2), 0) / period;
-        let std = Math.sqrt(variance);
-        let range = variance || 1; 
-        upperBand.push(mean + stdDevMultiplier * std);
-        lowerBand.push(mean - stdDevMultiplier * std);
-        sma.push(mean);
-    }
-    return { middle: sma, upper: upperBand, lower: lowerBand };
-}
+    if(data.length < period) return;
 
-// Функция для поиска фигур
-function detectPatterns(data) {
-    return ["Голова и плечи", "Клин", "Флаг", "Треугольник"].filter(pattern => detectPattern(data, pattern));
-}
+    let sma = data.slice(-period).reduce((acc, val) => acc + val.close, 0) / period;
+    let variance = data.slice(-period).reduce((acc, val) => acc + Math.pow(val.close - sma, 2), 0) / period;
+    let stdDev = Math.sqrt(variance);
 
-// Генерация торгового сигнала
-function generateSignal(indicators, supportResistance, patterns) {
-    let signal = "Ожидаем нормальный сетап.";
-    let arguments = [];
-    
-    let entry, stopLoss, takeProfit;
-    
-    if (indicators.rsi[indicators.rsi.length - 1] < 30) {
-        signal = "Лонг";
-        entry = data[data.length - 1].close;
-        stopLoss = entry * 0.98;
-        takeProfit = entry * 1.05;
-        arguments.push("Обнаружена перепроданность");
-    }
-    
-    return { signal, entry, stopLoss, takeProfit, arguments };
-}
-
-// Основной анализ
-async function analyzeMarket(symbol) {
-    console.log(`🔥 Начинаем анализ рынка для ${symbol}`);
-    let marketData = await fetchMarketData(symbol, "1h");
-    let indicators = {
-        rsi: calculateRSI(marketData, 14),
-        macd: calculateMACD(marketData),
-        bollinger: calculateBollingerBands(marketData)
+    return {
+        middle: sma,
+        upper: sma + stdDevMultiplier * stdDev,
+        lower: sma - stdDevMultiplier * stdDev
     };
-    let supportResistance = detectSupportResistance(marketData);
-    let patterns = detectPatterns(marketData);
-    let signal = generateSignal(indicators, supportResistance, patterns);
-    console.log("📊 Сигнал:", signal);
-    return signal;
 }
 
-console.log("🔥 Scalping.js загружен!");
+// 🔥 Грамотный расчет OBV
+function calculateOBV(data) {
+    let obv = [0];
+    for (let i = 1; i < data.length; i++) {
+        if (data[i].close > data[i - 1].close) obv.push(obv[i - 1] + data[i].volume);
+        else if (data[i].close < data[i - 1].close) obv.push(obv[i - 1] - data[i].volume);
+        else obv.push(obv[i - 1]);
+    }
+    return obv;
+}
+
+// 🔥 Грамотный расчет Stochastic
+function calculateStochastic(data, period = 14) {
+    if(data.length < period) return;
+    let slice = data.slice(-period);
+    let high = Math.max(...slice.map(c => c.high));
+    let low = Math.min(...slice.map(c => c.low));
+    let range = high - low || 1;
+    let k = ((data[data.length-1].close - low) / range) * 100;
+    return k;
+}
+
+// 🔥 Основная функция анализа
+async function analyzeMarket(symbol) {
+    const data = await fetchMarketData(symbol, "30m");
+
+    const indicators = {
+        rsi: calculateRSI(data),
+        macd: calculateMACD(data),
+        bollinger: calculateBollingerBands(data),
+        obv: calculateOBV(data),
+        stochastic: calculateStochastic(data)
+    };
+
+    const lastPrice = data[data.length - 1].close;
+
+    let signal = indicators.rsi < 30 && indicators.stochastic < 20 ? "Лонг 📈" :
+                 indicators.rsi > 70 && indicators.stochastic > 80 ? "Шорт 📉" : "Ожидаем 🔸";
+
+    let entry = lastPrice;
+    let stopLoss = signal === "Лонг 📈" ? indicators.bollinger.lower : indicators.bollinger.upper;
+    let takeProfit = signal === "Лонг 📈" ? indicators.bollinger.upper : indicators.bollinger.lower;
+
+    return { signal, entry, stopLoss, takeProfit, indicators };
+}
+
+// 🔥 Запуск анализа рынка
+analyzeMarket("BTCUSDT").then(result => {
+    console.log("📌 Результат анализа рынка: ", result);
+});

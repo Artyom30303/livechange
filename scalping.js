@@ -35,6 +35,7 @@ async function analyzeMarket(symbol, interval = '30m') {
     const marketData = await fetchMarketData(symbol, interval);
     if (!marketData || marketData.length < 50) {
         console.warn("Недостаточно данных для анализа");
+        document.getElementById("market_analysis").innerText = "Ошибка: недостаточно данных";
         return;
     }
 
@@ -44,7 +45,7 @@ async function analyzeMarket(symbol, interval = '30m') {
     let signal = rsi < 30 ? 'Лонг' : rsi > 70 ? 'Шорт' : 'Нейтрально';
     
     console.log("📊 Результат RSI анализа:", { symbol, signal, rsi: rsi.toFixed(2), currentPrice });
-    document.getElementById("market_analysis").innerText = `Сигнал: ${signal} | RSI: ${rsi.toFixed(2)} | Цена: ${currentPrice}`;
+    document.getElementById("market_analysis").innerText = `Сигнал: ${signal} | RSI: ${rsi.toFixed(2)} | Цена: ${currentPrice.toFixed(2)}`;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -68,8 +69,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Восстанавливаем выпадающий список и панель поиска
-    document.getElementById("symbol_select").addEventListener("change", (event) => {
-        const selectedSymbol = event.target.value;
-        analyzeMarket(selectedSymbol);
-    });
+    const symbolSelect = document.getElementById("symbol_select");
+    if (symbolSelect) {
+        symbolSelect.addEventListener("change", (event) => {
+            const selectedSymbol = event.target.value;
+            analyzeMarket(selectedSymbol);
+        });
+    }
 });

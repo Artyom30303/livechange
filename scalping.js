@@ -52,6 +52,17 @@ function detectSupportResistance(data) {
     };
 }
 
+// All Indicators Calculation
+function calculateIndicators(data) {
+    const closes = data.map(d => d.close);
+    return {
+        rsi: calculateRSI(closes),
+        atr: calculateATR(data),
+        levels: detectSupportResistance(data),
+        currentPrice: closes[closes.length - 1]
+    };
+}
+
 // Main Market Analysis
 async function analyzeMarket(symbol, interval = '30m') {
     const marketData = await fetchMarketData(symbol, interval);
@@ -61,12 +72,8 @@ async function analyzeMarket(symbol, interval = '30m') {
         return;
     }
 
-    const closes = marketData.map(d => d.close);
-    const rsi = calculateRSI(closes);
-    const atr = calculateATR(marketData);
-    const { support, resistance } = detectSupportResistance(marketData);
-
-    const currentPrice = closes[closes.length - 1];
+    const indicators = calculateIndicators(marketData);
+    const { rsi, atr, levels: { support, resistance }, currentPrice } = indicators;
 
     let signal, entry, stopLoss, takeProfit, argument;
 

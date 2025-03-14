@@ -5,6 +5,7 @@ async function fetchMarketData(symbol, interval, limit = 50) {
         const url = `${BINANCE_API_URL}?symbol=${symbol.toUpperCase()}&interval=${interval}&limit=${limit}`;
         const response = await fetch(url);
         const data = await response.json();
+        if (!Array.isArray(data) || data.length === 0) throw new Error("Недостаточно данных от Binance");
         return data.map(k => ({
             open: parseFloat(k[1]),
             high: parseFloat(k[2]),
@@ -19,6 +20,7 @@ async function fetchMarketData(symbol, interval, limit = 50) {
 }
 
 function calculateRSI(closes, period = 14) {
+    if (closes.length < period) return null;
     let gains = 0, losses = 0;
     for (let i = 1; i < period; i++) {
         const delta = closes[i] - closes[i - 1];
@@ -35,39 +37,47 @@ function calculateRSI(closes, period = 14) {
 async function analyzeMarket(symbol, interval = '30m') {
     const marketData = await fetchMarketData(symbol, interval);
     if (!marketData || marketData.length < 20) {
-        console.warn("Недостаточно данных");
+        console.warn("Недостаточно данных для анализа");
         return;
     }
-
+    
     const closes = marketData.map(d => d.close);
     const rsi = calculateRSI(closes);
+    if (rsi === null) return;
     const currentPrice = closes[closes.length - 1];
     let signal = rsi < 30 ? 'Лонг' : rsi > 70 ? 'Шорт' : 'Нейтрально';
     let argument = rsi < 30 ? 'Перепроданность, возможен рост' : rsi > 70 ? 'Перекупленность, возможен спад' : 'Цена в нейтральной зоне';
     
-    document.getElementById("signal").innerText = signal;
-    document.getElementById("rsi").innerText = rsi.toFixed(2);
-    document.getElementById("price").innerText = currentPrice.toFixed(2);
-    document.getElementById("argument").innerText = argument;
+    if (document.getElementById("signal")) document.getElementById("signal").innerText = signal;
+    if (document.getElementById("rsi")) document.getElementById("rsi").innerText = rsi.toFixed(2);
+    if (document.getElementById("price")) document.getElementById("price").innerText = currentPrice.toFixed(2);
+    if (document.getElementById("argument")) document.getElementById("argument").innerText = argument;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
     analyzeMarket('BTCUSDT');
     
-    new TradingView.widget({
-        "container_id": "tradingview_chart",
-        "symbol": "BINANCE:BTCUSDT",
-        "interval": "30",
-        "theme": "light",
-        "style": "1",
-        "locale": "ru",
-        "width": "100%",
-        "height": "400px",
-        "enable_publishing": false,
-        "allow_symbol_change": true
-    });
+    if (typeof TradingView !== 'undefined') {
+        new TradingView.widget({
+            "container_id": "tradingview_chart",
+            "symbol": "BINANCE:BTCUSDT",
+            "interval": "30",
+            "theme": "light",
+            "style": "1",
+            "locale": "ru",
+            "width": "100%",
+            "height": "400px",
+            "enable_publishing": false,
+            "allow_symbol_change": true
+        });
+    } else {
+        console.error("Ошибка загрузки TradingView");
+    }
     
-    document.getElementById("symbol_select").addEventListener("change", (event) => {
-        analyzeMarket(event.target.value);
-    });
+    const symbolSelect = document.getElementById("symbol_select");
+    if (symbolSelect) {
+        symbolSelect.addEventListener("change", (event) => {
+            analyzeMarket(event.target.value);
+        });
+    }
 });

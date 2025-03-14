@@ -60,10 +60,16 @@ document.addEventListener("DOMContentLoaded", () => {
         "locale": "ru",
         "toolbar_bg": "#f1f3f6",
         "enable_publishing": false,
-        "hide_top_toolbar": true,
+        "hide_top_toolbar": false,
         "allow_symbol_change": true,
         "show_popup_button": true,
         "width": "100%",
-        "height": "100%"
+        "height": "400px"
+    });
+
+    // Восстанавливаем выпадающий список и панель поиска
+    document.getElementById("symbol_select").addEventListener("change", (event) => {
+        const selectedSymbol = event.target.value;
+        analyzeMarket(selectedSymbol);
     });
 });

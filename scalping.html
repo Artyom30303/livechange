@@ -10,30 +10,47 @@
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             background-color: #f4f4f4;
         }
-        h1 {
-            font-size: 24px;
+        .navbar {
+            display: flex;
+            background: #6200ea;
+            color: white;
+            padding: 15px;
+            font-size: 16px;
+            justify-content: space-around;
             font-weight: bold;
         }
         .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        .filters {
             display: flex;
             justify-content: space-between;
-            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        select, input {
+            padding: 8px;
+            font-size: 14px;
+            width: 48%;
+        }
+        .content {
+            display: flex;
+            gap: 20px;
         }
         .block {
-            width: 48%;
+            flex: 1;
             background: white;
             padding: 20px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
         }
-        select {
-            margin-top: 10px;
-            padding: 5px;
-            font-size: 14px;
-            width: 100%;
+        h2 {
+            font-size: 18px;
+            font-weight: bold;
         }
         .pump-club {
             font-size: 20px;
@@ -47,22 +64,34 @@
     </style>
 </head>
 <body>
-    <h1>Scalping Terminal</h1>
+    <div class="navbar">
+        <div>🏠 Дашборд</div>
+        <div>⚡ Скальпинг</div>
+        <div>📈 Интрадей</div>
+        <div>📊 Свинг-трейдинг</div>
+        <div>💰 Спот</div>
+    </div>
+    
     <div class="container">
-        <div class="block">
-            <h2>📈 График</h2>
-            <div id="tradingview_chart" style="height: 400px;"></div>
-        </div>
-        <div class="block">
-            <h2 class="pump-club">🔥 Pump & Dump Club</h2>
-            <p id="market_analysis" class="analysis-content">Ждём анализа рынка...</p>
-            <label for="symbol_select">Выберите монету:</label>
+        <div class="filters">
             <select id="symbol_select">
                 <option value="BTCUSDT">Bitcoin (BTC/USDT)</option>
                 <option value="ETHUSDT">Ethereum (ETH/USDT)</option>
                 <option value="BNBUSDT">Binance Coin (BNB/USDT)</option>
                 <option value="DOGEUSDT">Dogecoin (DOGE/USDT)</option>
             </select>
+            <input type="text" id="search_input" placeholder="Поиск монеты...">
+        </div>
+
+        <div class="content">
+            <div class="block">
+                <h2>📈 График</h2>
+                <div id="tradingview_chart" style="height: 400px;"></div>
+            </div>
+            <div class="block">
+                <h2 class="pump-club">🔥 Pump & Dump Club</h2>
+                <p id="market_analysis" class="analysis-content">Ждём анализа рынка...</p>
+            </div>
         </div>
     </div>
 </body>

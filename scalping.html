@@ -1,95 +1,43 @@
-const BINANCE_API_URL = 'https://api.binance.com/api/v3/klines';
-const symbols = ["BTCUSDT", "ETHUSDT", "BNBUSDT", "DOGEUSDT", "SOLUSDT"];
-
-document.addEventListener("DOMContentLoaded", () => {
-    const symbolSelect = document.getElementById("symbol_select");
-    const searchInput = document.getElementById("search_input");
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scalping Terminal</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-item">🏠 Дашборд</div>
+        <div class="nav-item">⚡ Скальпинг</div>
+        <div class="nav-item">📈 Интрадей</div>
+        <div class="nav-item">📊 Свинг-трейдинг</div>
+        <div class="nav-item">💰 Спот</div>
+    </nav>
     
-    // Заполняем список доступных символов
-    symbols.forEach(symbol => {
-        let option = document.createElement("option");
-        option.value = symbol;
-        option.textContent = symbol;
-        symbolSelect.appendChild(option);
-    });
+    <div class="container">
+        <div class="search-panel">
+            <select id="symbol_select"></select>
+            <input type="text" id="search_input" placeholder="Поиск монеты...">
+        </div>
+        
+        <div class="content">
+            <div class="chart-section">
+                <h2>📉 График</h2>
+                <div id="tradingview_chart"></div>
+            </div>
+            
+            <div class="signal-panel">
+                <h2>🔥 Pump & Dump Club</h2>
+                <p><strong>📍 Сигнал:</strong> <span id="signal"></span></p>
+                <p><strong>📊 RSI:</strong> <span id="rsi"></span></p>
+                <p><strong>💰 Цена:</strong> <span id="price"></span></p>
+                <p><strong>📌 Аргумент:</strong> <span id="argument"></span></p>
+            </div>
+        </div>
+    </div>
     
-    // Фильтр поиска монет
-    searchInput.addEventListener("input", () => {
-        let filter = searchInput.value.toUpperCase();
-        symbolSelect.innerHTML = "";
-        symbols.filter(symbol => symbol.includes(filter)).forEach(symbol => {
-            let option = document.createElement("option");
-            option.value = symbol;
-            option.textContent = symbol;
-            symbolSelect.appendChild(option);
-        });
-    });
-
-    // Анализ рынка при изменении монеты
-    symbolSelect.addEventListener("change", () => analyzeMarket(symbolSelect.value));
-
-    // Инициализация с BTCUSDT
-    analyzeMarket("BTCUSDT");
-    loadTradingView("BTCUSDT");
-});
-
-async function fetchMarketData(symbol, interval = "30m", limit = 50) {
-    try {
-        const url = `${BINANCE_API_URL}?symbol=${symbol.toUpperCase()}&interval=${interval}&limit=${limit}`;
-        const response = await fetch(url);
-        const data = await response.json();
-        return data.map(k => ({ close: parseFloat(k[4]) }));
-    } catch (error) {
-        console.error("Ошибка получения данных с Binance:", error);
-    }
-}
-
-function calculateRSI(closes, period = 14) {
-    let gains = 0, losses = 0;
-    for (let i = 1; i < period; i++) {
-        const delta = closes[i] - closes[i - 1];
-        if (delta > 0) gains += delta;
-        else losses -= delta;
-    }
-    let avgGain = gains / period;
-    let avgLoss = losses / period;
-    if (avgLoss === 0) return 100;
-    const rs = avgGain / avgLoss;
-    return 100 - (100 / (1 + rs));
-}
-
-async function analyzeMarket(symbol) {
-    const marketData = await fetchMarketData(symbol);
-    if (!marketData || marketData.length < 14) {
-        console.warn("Недостаточно данных для анализа");
-        return;
-    }
-
-    const closes = marketData.map(d => d.close);
-    const rsi = calculateRSI(closes);
-    const currentPrice = closes[closes.length - 1];
-    let signal = rsi < 30 ? 'Лонг' : rsi > 70 ? 'Шорт' : 'Нейтрально';
-    let argument = rsi < 30 ? "Перепроданность - возможен рост" : rsi > 70 ? "Перекупленность - возможен спад" : "Цена в нейтральной зоне";
-    
-    document.getElementById("signal").innerText = signal;
-    document.getElementById("rsi").innerText = rsi.toFixed(2);
-    document.getElementById("price").innerText = currentPrice.toFixed(2);
-    document.getElementById("argument").innerText = argument;
-}
-
-function loadTradingView(symbol) {
-    new TradingView.widget({
-        "container_id": "tradingview_chart",
-        "symbol": `BINANCE:${symbol}`,
-        "interval": "30",
-        "theme": "light",
-        "style": "1",
-        "locale": "ru",
-        "toolbar_bg": "#f1f3f6",
-        "enable_publishing": false,
-        "hide_top_toolbar": false,
-        "allow_symbol_change": true,
-        "width": "100%",
-        "height": "400px"
-    });
-}
+    <script src="scalping.js"></script>
+</body>
+</html>

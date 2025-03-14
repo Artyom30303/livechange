@@ -16,8 +16,8 @@ document.addEventListener("DOMContentLoaded", async function () {
             "enable_publishing": false,
             "hide_top_toolbar": false,
             "allow_symbol_change": true,
-            "width": "100%",
-            "height": "500px"
+            "autosize": true,
+            "height": "600px"
         });
     }
     

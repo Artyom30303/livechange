@@ -3,62 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scalping - LiveChange</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Scalping Terminal</title>
+    <script src="https://s3.tradingview.com/tv.js"></script>
+    <script defer src="scalping.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        .container {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+        }
+        .chart-container, .analysis-container {
+            width: 45%;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        #tradingview_chart {
+            height: 400px;
+        }
+    </style>
 </head>
 <body>
-
-    <!-- Навигация -->
-    <div class="navbar">
-        <button onclick="window.location.href='index.html'">Дашборд</button>
-        <button class="active">Скальпинг</button>
-        <button onclick="window.location.href='intraday.html'">Интрадей</button>
-        <button onclick="window.location.href='swing.html'">Свинг-трейдинг</button>
-        <button onclick="window.location.href='position.html'">Позиционная торговля</button>
-        <button onclick="window.location.href='spot.html'">Спот</button>
-    </div>
-
-    <!-- Верхняя панель с поиском -->
-    <div class="top-panel">
-        <div class="search-container">
-            <input type="text" id="search-coin" placeholder="Поиск монеты...">
-            <select id="coin-select"></select>
-        </div>
-    </div>
-
-    <!-- Основной контейнер -->
     <div class="container">
-        <!-- Левая панель с графиком -->
-        <div class="left-panel">
-            <div id="chart-container">
-                <p class="loading-text">📉 График загружается...</p>
-            </div>
+        <div class="chart-container">
+            <h3>График</h3>
+            <div id="tradingview_chart">График загружается...</div>
         </div>
-
-        <!-- Правая панель с сигналами -->
-        <div class="right-panel">
-            <h3>🔥 Pump & Dump Club</h3>
-            <div id="signals">⏳ Ждём анализа рынка...</div>
+        <div class="analysis-container">
+            <h3>📊 Анализ рынка</h3>
+            <p id="market_analysis">Ждём анализа рынка...</p>
         </div>
     </div>
-
-    <!-- Журнал трейдера -->
-    <div class="journal">
-        <h3>📘 Журнал трейдера</h3>
-        <p>Записи о сделках появятся здесь.</p>
-    </div>
-
-    <script>
-        function loadScript(url) {
-            const script = document.createElement('script');
-            script.src = `${url}?v=${new Date().getTime()}`; // гарантируем загрузку без кеша
-            script.onload = () => console.log('✅ Scalping.js загружен!');
-            script.onerror = () => console.error('❌ Scalping.js не загружен!');
-            document.body.appendChild(script);
-        }
-
-        loadScript('scalping.js');
-    </script>
-    <script src="https://s3.tradingview.com/tv.js"></script>
 </body>
 </html>

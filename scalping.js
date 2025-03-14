@@ -1,10 +1,10 @@
 document.addEventListener("DOMContentLoaded", async function () {
     const symbolSelect = document.getElementById("symbol_select");
     const searchInput = document.getElementById("search");
+    const tradingViewContainer = document.getElementById("tradingview_chart");
     
-    // Инициализация TradingView
     function loadTradingView(symbol) {
-        document.getElementById("tradingview_chart").innerHTML = "";
+        tradingViewContainer.innerHTML = "";
         new TradingView.widget({
             "container_id": "tradingview_chart",
             "symbol": `BINANCE:${symbol}`,
@@ -16,8 +16,8 @@ document.addEventListener("DOMContentLoaded", async function () {
             "enable_publishing": false,
             "hide_top_toolbar": false,
             "allow_symbol_change": true,
-            "autosize": true,
-            "height": "600px"
+            "width": "100%",
+            "height": "500px"
         });
     }
     

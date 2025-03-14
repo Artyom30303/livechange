@@ -1,67 +1,120 @@
-// scalping.js
+const BINANCE_API_URL = 'https://api.binance.com/api/v3/klines';
 
-const BINANCE_API_URL = "https://api.binance.com/api/v3/klines";
-
-const timeframes = ["30m", "1h", "4h", "1d"];
-
-async function fetchMarketData(symbol, interval) {
-    const url = `${BINANCE_API_URL}?symbol=${symbol.toUpperCase()}&interval=${interval}&limit=100`;
-    const response = await fetch(url);
+async function fetchMarketData(symbol, interval = '30m') {
+    const response = await fetch(`${BINANCE_API_URL}?symbol=${symbol.toUpperCase()}&interval=${interval}&limit=100`);
     const data = await response.json();
-    return data.map(candle => ({
-        time: candle[0],
-        open: parseFloat(candle[1]),
-        high: parseFloat(candle[2]),
-        low: parseFloat(candle[3]),
-        close: parseFloat(candle[4]),
-        volume: parseFloat(candle[5])
+    return data.map(d => ({
+        open: +d[1],
+        high: +d[2],
+        low: +d[3],
+        close: +d[4],
+        volume: +d[5]
     }));
 }
 
-function calculateIndicators(data) {
+// RSI calculation
+function calculateRSI(data, period = 14) {
+    let gains = 0, losses = 0;
+    for (let i = 1; i <= period; i++) {
+        const diff = data[i].close - data[i - 1].close;
+        if (diff > 0) gains += diff;
+        else losses -= diff;
+    }
+    let avgGain = gains / period;
+    let avgLoss = losses / period;
+
+    if (avgLoss === 0) return 100;
+
+    let rs = avgGain / avgLoss;
+    return 100 - (100 / (1 + rs));
+}
+
+// Bollinger Bands
+function calculateBollingerBands(data, period = 20) {
+    if (data.length < period) return null;
+
+    let closes = data.slice(-period).map(d => d.close);
+    let mean = closes.reduce((acc, val) => acc + val, 0) / period;
+    let std = Math.sqrt(closes.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / period);
+
     return {
-        rsi: calculateRSI(data, 14),
-        macd: calculateMACD(data, 12, 26, 9),
-        bollinger: calculateBollingerBands(data, 14, 2),
-        obv: calculateOBV(data),
-        stochastic: calculateStochastic(data, 14, 3, 3)
+        upper: mean + std * 2,
+        middle: mean,
+        lower: mean - std * 2
     };
 }
 
-function generateSignal(data, indicators) {
-    let signal = "Ожидаем нормальный сетап";
-    let entry, stopLoss, takeProfit;
+// MACD
+function calculateEMA(data, period) {
+    let multiplier = 2 / (period + 1);
+    return data.reduce((acc, val, i) => {
+        if (i === 0) return [val.close];
+        acc.push((val.close - acc[i - 1]) * multiplier + acc[i - 1]);
+        return acc;
+    }, []);
+}
 
-    const lastRSI = indicators.rsi[indicators.rsi.length - 1];
+function calculateMACD(data) {
+    const shortEMA = calculateEMA(data, 12);
+    const longEMA = calculateEMA(data, 26);
 
-    if (indicators.rsi[indicators.rsi.length - 1] < 30 && indicators.stochastic.K < 20) {
+    let macdLine = shortEMA.map((val, idx) => val - longEMA[idx]);
+    let signalLine = calculateEMA(macdLine.slice(-9).map(val => ({ close: val })), 9);
+
+    return {
+        macd: macdLine[macdLine.length - 1],
+        signal: signalLine[signalLine.length - 1]
+    };
+}
+
+// Support & Resistance detection
+function detectSupportResistance(data) {
+    let highs = data.map(d => d.high);
+    let lows = data.map(d => d.low);
+
+    return {
+        resistance: Math.max(...highs.slice(-20)),
+        support: Math.min(...lows.slice(-20))
+    };
+}
+
+// Main analysis function
+async function analyzeMarket(symbol) {
+    let data = await fetchMarketData(symbol);
+
+    let rsi = calculateRSI(data);
+    let macd = calculateMACD(data);
+    let bollinger = calculateBollingerBands(data);
+    let srLevels = detectSupportResistance(data);
+
+    let lastClose = data[data.length - 1].close;
+    let entry, stopLoss, takeProfit, signal, arguments;
+
+    if (rsi < 30 && macd.macd > macd.signal && lastClose < bollinger.lower && lastClose <= srLevels.support * 1.01) {
         signal = "Лонг";
-        entry = data[data.length - 1].close;
-        stopLoss = entry * 0.98;
-        takeProfit = entry * 1.02;
-    } else if (indicators.rsi[indicators.rsi.length - 1] > 70 && indicators.stochastic.K > 80) {
+        entry = lastClose;
+        stopLoss = srLevels.support * 0.98;
+        takeProfit = srLevels.resistance * 0.995;
+        arguments = "RSI перепроданность, MACD разворот, цена у нижней линии Боллинджера, поддержка рядом";
+    } else if (rsi > 70 && macd.macd < macd.signal && lastClose > bollinger.upper && lastClose >= srLevels.resistance * 0.99) {
         signal = "Шорт";
-        entry = data[data.length - 1].close;
-        stopLoss = entry * 1.02;
-        takeProfit = entry * 0.98;
+        entry = lastClose;
+        stopLoss = srLevels.resistance * 1.02;
+        takeProfit = srLevels.support * 1.005;
+        arguments = "RSI перекупленность, MACD разворот вниз, цена у верхней линии Боллинджера, сопротивление рядом";
+    } else {
+        signal = "Нет входа";
+        arguments = "Нет уверенного сигнала на вход по текущим условиям";
     }
 
-    return { signal, entry, stopLoss, takeProfit };
+    return {
+        symbol,
+        signal,
+        entry: entry?.toFixed(2),
+        stopLoss: stopLoss?.toFixed(2),
+        takeProfit: takeProfit?.toFixed(2),
+        arguments
+    };
 }
 
-async function analyzeMarket(symbol) {
-    console.log("🔥 Начинаем анализ рынка для", symbol);
-
-    const data = await fetchMarketData(symbol, "30m");
-    const indicators = calculateIndicators(data);
-
-    const { signal, entry, stopLoss, takeProfit } = generateSignal(data, indicators);
-
-    console.log(`✅ Сигнал: ${signal}, вход: ${entry}, SL: ${stopLoss}, TP: ${takeProfit}`);
-}
-
-// Экспортируем функции в глобальный контекст
-window.fetchMarketData = fetchMarketData;
 window.analyzeMarket = analyzeMarket;
-window.calculateIndicators = calculateIndicators;
-window.generateSignal = generateSignal;

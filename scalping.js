@@ -111,7 +111,6 @@ document.addEventListener("DOMContentLoaded", () => {
     analyzeMarket(defaultSymbol);
     loadTradingView(defaultSymbol);
 
-    // Обработчик смены монеты
     const symbolSelect = document.getElementById("symbol_select");
     if (symbolSelect) {
         symbolSelect.addEventListener("change", (event) => {

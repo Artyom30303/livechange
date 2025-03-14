@@ -1,6 +1,6 @@
 const BINANCE_API_URL = 'https://api.binance.com/api/v3/klines';
 
-// Получение данных с Binance API
+// Получение данных о рынке
 async function fetchMarketData(symbol, interval = '30m', limit = 100) {
     try {
         const url = `${BINANCE_API_URL}?symbol=${symbol.toUpperCase()}&interval=${interval}&limit=${limit}`;
@@ -25,12 +25,12 @@ async function fetchMarketData(symbol, interval = '30m', limit = 100) {
     }
 }
 
-// Расчет индикатора RSI
+// Расчет RSI
 function calculateRSI(closes, period = 14) {
     if (closes.length < period) return null;
 
     let gains = 0, losses = 0;
-    for (let i = 1; i <= period; i++) {
+    for (let i = 1; i < period; i++) {
         const delta = closes[i] - closes[i - 1];
         if (delta > 0) gains += delta;
         else losses -= delta;

@@ -49,4 +49,21 @@ async function analyzeMarket(symbol, interval = '30m') {
 
 document.addEventListener("DOMContentLoaded", () => {
     analyzeMarket('BTCUSDT');
+    
+    // Грузим график TradingView
+    new TradingView.widget({
+        "container_id": "tradingview_chart",
+        "symbol": "BINANCE:BTCUSDT",
+        "interval": "30",
+        "theme": "dark",
+        "style": "1",
+        "locale": "ru",
+        "toolbar_bg": "#f1f3f6",
+        "enable_publishing": false,
+        "hide_top_toolbar": true,
+        "allow_symbol_change": true,
+        "show_popup_button": true,
+        "width": "100%",
+        "height": "100%"
+    });
 });

@@ -1,56 +1,56 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const symbolSelect = document.getElementById("symbol_select");
-    const searchInput = document.getElementById("search");
-    const tradingViewContainer = document.getElementById("tradingview_chart");
+  const searchInput = document.getElementById("searchInput");
+  const coinList = document.getElementById("coinList");
+  const signalDisplay = document.getElementById("signalDisplay");
 
-    function loadTradingView(symbol) {
-        tradingViewContainer.innerHTML = "";
-        new TradingView.widget({
-            "container_id": "tradingview_chart",
-            "width": "100%",
-            "height": "400",
-            "symbol": `BINANCE:${symbol}`,
-            "interval": "30",
-            "theme": "light",
-            "style": "1",
-            "locale": "ru",
-            "toolbar_bg": "#f1f3f6",
-            "hide_top_toolbar": false,
-            "save_image": false,
-            "enable_publishing": false
-        });
-    }
+  let coins = [
+    "BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT", "ADAUSDT", "DOGEUSDT",
+    "AVAXUSDT", "DOTUSDT", "LINKUSDT", "MATICUSDT", "SHIBUSDT", "TONUSDT", "NEARUSDT"
+  ];
 
-    function analyzeMarket(symbol) {
-        const fakeData = {
-            "BTCUSDT": { signal: "Лонг", entry: 84653.01, stoploss: 82959.95, take1: 86346.07, argument: "Обнаружена поддержка" },
-            "ETHUSDT": { signal: "Шорт", entry: 2893.52, stoploss: 3020.45, take1: 2750.36, argument: "Сопротивление на уровне 3000" },
-            "BNBUSDT": { signal: "Нейтрально", entry: 579.19, stoploss: 550.00, take1: 600.00, argument: "Цена в боковом движении" },
-            "DOGEUSDT": { signal: "Лонг", entry: 0.16898, stoploss: 0.16000, take1: 0.18000, argument: "Восходящий тренд" }
-        };
-
-        const data = fakeData[symbol] || { signal: "-", entry: "-", stoploss: "-", take1: "-", argument: "-" };
-        document.getElementById("signal").innerText = data.signal;
-        document.getElementById("entry").innerText = `$${data.entry}`;
-        document.getElementById("stoploss").innerText = `$${data.stoploss}`;
-        document.getElementById("take1").innerText = `$${data.take1}`;
-        document.getElementById("argument").innerText = data.argument;
-    }
-
-    symbolSelect.addEventListener("change", function () {
-        const selectedSymbol = symbolSelect.value;
-        loadTradingView(selectedSymbol);
-        analyzeMarket(selectedSymbol);
+  // Простой рендер монет
+  function renderCoins(filteredCoins) {
+    coinList.innerHTML = "";
+    filteredCoins.forEach((coin) => {
+      const item = document.createElement("li");
+      item.textContent = coin;
+      item.classList.add("coin-item");
+      item.addEventListener("click", () => fetchSignal(coin));
+      coinList.appendChild(item);
     });
+  }
 
-    searchInput.addEventListener("input", function () {
-        const query = searchInput.value.toLowerCase();
-        for (let option of symbolSelect.options) {
-            option.hidden = !option.text.toLowerCase().includes(query);
-        }
-    });
+  // Поиск монет
+  searchInput.addEventListener("input", function () {
+    const query = searchInput.value.toUpperCase();
+    const filtered = coins.filter((coin) => coin.includes(query));
+    renderCoins(filtered);
+  });
 
-    // Загружаем данные по умолчанию
-    loadTradingView("BTCUSDT");
-    analyzeMarket("BTCUSDT");
+  renderCoins(coins); // initial render
+
+  // Запрос сигнала с backend
+  async function fetchSignal(symbol) {
+    signalDisplay.innerHTML = "<p>Загрузка сигнала...</p>";
+
+    try {
+      const res = await fetch(`https://your-backend-api.com/analyze?symbol=${symbol}`);
+      const data = await res.json();
+
+      signalDisplay.innerHTML = `
+        <h2>${symbol}</h2>
+        <p><strong>Сигнал:</strong> ${data.signal}</p>
+        <p><strong>Таймфрейм:</strong> ${data.timeframe}</p>
+        <p><strong>Статус:</strong> ${data.status}</p>
+        <p><strong>Уверенность:</strong> ${(data.confidence * 100).toFixed(1)}%</p>
+        <p><strong>Аргументация:</strong></p>
+        <ul>
+          ${data.arguments.map(arg => `<li>${arg}</li>`).join("")}
+        </ul>
+      `;
+    } catch (error) {
+      console.error("Ошибка загрузки сигнала:", error);
+      signalDisplay.innerHTML = "<p style='color:red;'>Ошибка загрузки сигнала</p>";
+    }
+  }
 });
